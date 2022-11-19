@@ -1,3 +1,4 @@
+mod diff;
 mod errors;
 mod inspect;
 
@@ -19,6 +20,10 @@ fn main() -> Result {
 fn diff(args: &Args) -> Result {
     let s1 = inspect::Database::new(&args.db1)?;
     let s2 = inspect::Database::new(&args.db2)?;
+
+    let diff = diff::Diff::from(&s1, &s2);
+
+    print!("{}", diff.sql()?);
 
     Ok(())
 }
