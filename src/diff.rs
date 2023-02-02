@@ -168,7 +168,7 @@ diff!(Relation, Column, crate::inspect::Relation);
 
 impl Relation {
     fn sql_added(&self, new: &crate::inspect::Relation) -> String {
-        format!("create table {};\n", new.fullname())
+        format!("create table {}();\n", new.fullname())
     }
 
     fn sql_removed(&self, old: &crate::inspect::Relation) -> String {
