@@ -152,14 +152,10 @@ impl Schema {
     }
 
     fn sql_updated(&self, old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> String {
-        if old.comment != new.comment {
-            format!(
-                "comment on schema {} is '{}';\n",
-                new.fullname(),
-                new.comment
-            )
-        } else {
-            String::new()
+        match (&old.comment, &new.comment) {
+            (_, Some(comment)) => format!("comment on schema {} is '{comment}';\n", old.fullname()),
+            (Some(_), None) => format!("comment on schema {} is null;\n", old.fullname()),
+            (None, None) => String::new(),
         }
     }
 }

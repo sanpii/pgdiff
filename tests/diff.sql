@@ -1,5 +1,6 @@
 create schema new_schema;
 drop schema old_schema;
+comment on schema public is 'public schema';
 create table public.new_table(
     pk int4 primary key
 );
