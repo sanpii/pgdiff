@@ -1,4 +1,5 @@
 create schema if not exists new_schema;
+comment on schema public is 'public schema';
 
 create table if not exists new_table(
     pk int primary key

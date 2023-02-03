@@ -1,7 +1,7 @@
 #[test]
 fn diff() -> Result<(), Box<dyn std::error::Error>> {
-    let old = db("DB1_URL", include_str!("db1.sql"))?;
-    let new = db("DB2_URL", include_str!("db2.sql"))?;
+    let old = db("OLD_URL", include_str!("old.sql"))?;
+    let new = db("NEW_URL", include_str!("new.sql"))?;
 
     let pgdiff = pgdiff::diff::Diff::from(&old, &new);
 

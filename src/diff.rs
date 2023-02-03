@@ -11,26 +11,26 @@ trait Stack<C: Comparable, CH>: Default {
 }
 
 fn iter<S: Stack<C, CH>, C: Comparable, CH, F: FnMut(&C, &C) -> CH>(
-    rhs: &HashMap<String, C>,
-    lhs: &HashMap<String, C>,
+    old: &HashMap<String, C>,
+    new: &HashMap<String, C>,
     mut next: F,
 ) -> S {
     let mut stack = S::default();
 
-    for (name, r) in rhs {
-        match lhs.get(name) {
+    for (name, r) in new {
+        match old.get(name) {
             Some(l) => {
                 if r != l {
-                    stack.update(r, l);
+                    stack.update(l, r);
                 }
-                stack.add_child(next(r, l));
+                stack.add_child(next(l, r));
             }
             None => stack.add(r),
         }
     }
 
-    for (name, l) in lhs {
-        if !rhs.contains_key(name) {
+    for (name, l) in old {
+        if !new.contains_key(name) {
             stack.remove(l);
         }
     }
@@ -44,24 +44,24 @@ pub struct Diff {
 }
 
 impl Diff {
-    pub fn from(db1: &crate::inspect::Database, db2: &crate::inspect::Database) -> Self {
-        let schema = Self::database(&db1, &db2);
+    pub fn from(old: &crate::inspect::Database, new: &crate::inspect::Database) -> Self {
+        let schema = Self::database(&old, &new);
 
         Self { schema }
     }
 
-    fn database(db1: &crate::inspect::Database, db2: &crate::inspect::Database) -> Schema {
-        iter(&db1.schemas, &db2.schemas, |s1, s2| Self::schema(s1, s2))
+    fn database(old: &crate::inspect::Database, new: &crate::inspect::Database) -> Schema {
+        iter(&old.schemas, &new.schemas, |old, new| Self::schema(old, new))
     }
 
-    fn schema(s1: &crate::inspect::Schema, s2: &crate::inspect::Schema) -> Relation {
-        iter(&s1.relations, &s2.relations, |r1, r2| {
-            Self::relation(r1, r2)
+    fn schema(old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> Relation {
+        iter(&old.relations, &new.relations, |old, new| {
+            Self::relation(old, new)
         })
     }
 
-    fn relation(r1: &crate::inspect::Relation, r2: &crate::inspect::Relation) -> Column {
-        iter(&r1.columns, &r2.columns, |_, _| {})
+    fn relation(old: &crate::inspect::Relation, new: &crate::inspect::Relation) -> Column {
+        iter(&old.columns, &new.columns, |_, _| {})
     }
 
     pub fn sql(&self) -> crate::Result<String> {
@@ -170,7 +170,7 @@ impl Relation {
     fn sql_added(&self, new: &crate::inspect::Relation) -> String {
         let mut sql = format!("create table {}(", new.fullname());
 
-        for (_, column) in &new.columns {
+        for column in new.columns.values() {
             sql.push_str(&format!("\n    {} {}", column.name, column.ty));
             if column.is_primary {
                 sql.push_str(" primary key");

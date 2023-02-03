@@ -2,8 +2,8 @@ use clap::Parser;
 
 #[derive(Parser)]
 struct Args {
-    db1: String,
-    db2: String,
+    old: String,
+    new: String,
 }
 
 fn main() -> pgdiff::Result {
@@ -13,10 +13,10 @@ fn main() -> pgdiff::Result {
 }
 
 fn diff(args: &Args) -> pgdiff::Result {
-    let s1 = pgdiff::inspect::Database::new(&args.db1)?;
-    let s2 = pgdiff::inspect::Database::new(&args.db2)?;
+    let old = pgdiff::inspect::Database::new(&args.old)?;
+    let new = pgdiff::inspect::Database::new(&args.new)?;
 
-    let diff = pgdiff::diff::Diff::from(&s1, &s2);
+    let diff = pgdiff::diff::Diff::from(&old, &new);
 
     print!("{}", diff.sql()?);
 
