@@ -1,6 +1,8 @@
 create schema new_schema;
 drop schema old_schema;
-create table public.new_table();
+create table public.new_table(
+    pk int4 primary key
+);
 drop table public.old_table;
 comment on table public.updated_table is null;
 alter table "public.updated_table" add column "len" varchar(10);

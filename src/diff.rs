@@ -168,7 +168,21 @@ diff!(Relation, Column, crate::inspect::Relation);
 
 impl Relation {
     fn sql_added(&self, new: &crate::inspect::Relation) -> String {
-        format!("create table {}();\n", new.fullname())
+        let mut sql = format!("create table {}(", new.fullname());
+
+        for (_, column) in &new.columns {
+            sql.push_str(&format!("\n    {} {}", column.name, column.ty));
+            if column.is_primary {
+                sql.push_str(" primary key");
+            }
+            sql.push_str(",");
+        }
+
+        sql = sql.trim_end_matches(',').to_string();
+
+        sql.push_str("\n);\n");
+
+        sql
     }
 
     fn sql_removed(&self, old: &crate::inspect::Relation) -> String {

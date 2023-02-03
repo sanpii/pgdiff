@@ -1,6 +1,8 @@
 create schema if not exists new_schema;
 
-create table if not exists new_table();
+create table if not exists new_table(
+    pk int primary key
+);
 
 create table if not exists updated_table(
     new_column text,
