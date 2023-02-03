@@ -5,7 +5,24 @@ fn diff() -> Result<(), Box<dyn std::error::Error>> {
 
     let pgdiff = pgdiff::diff::Diff::from(&old, &new);
 
-    assert_eq!(pgdiff.sql()?, include_str!("diff.sql"));
+    let actual = pgdiff.sql()?;
+    let expected = include_str!("diff.sql");
+
+    if actual != expected {
+        let diff = similar::TextDiff::from_lines(expected, &actual);
+
+        for op in diff.ops() {
+            for change in diff.iter_changes(op) {
+                let (sign, style) = match change.tag() {
+                    similar::ChangeTag::Delete => ("-", console::Style::new().red()),
+                    similar::ChangeTag::Insert => ("+", console::Style::new().green()),
+                    similar::ChangeTag::Equal => (" ", console::Style::new()),
+                };
+                print!("{}{}", style.apply_to(sign).bold(), style.apply_to(change));
+            }
+        }
+        panic!();
+    }
 
     Ok(())
 }

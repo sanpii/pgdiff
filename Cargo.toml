@@ -10,3 +10,7 @@ thiserror = "1.0"
 [dependencies.clap]
 version = "4.0"
 features = ["derive"]
+
+[dev-dependencies]
+console = "0.15"
+similar = "2.2"
