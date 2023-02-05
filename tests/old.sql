@@ -24,4 +24,10 @@ begin
     if not exists (select 1 from pg_type where typname = 'updated_domain') then
         create domain updated_domain as text check (value is not null);
     end if;
+    if not exists (select 1 from pg_type where typname = 'old_composite') then
+        create type old_composite as ();
+    end if;
+    if not exists (select 1 from pg_type where typname = 'updated_composite') then
+        create type updated_composite as (r double precision);
+    end if;
 end$$;

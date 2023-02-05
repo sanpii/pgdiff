@@ -53,12 +53,13 @@ impl Diff {
         iter(&old.schemas, &new.schemas, |old, new| Self::schema(old, new))
     }
 
-    fn schema(old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> (Relation, Enum, Domain) {
+    fn schema(old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> (Relation, Enum, Domain, Composite) {
         let relation = iter(&old.relations, &new.relations, |old, new| Self::relation(old, new));
         let r#enum = iter(&old.enums, &new.enums, |_, _| {});
         let domain = iter(&old.domains, &new.domains, |_, _| {});
+        let composite = iter(&old.composites, &new.composites, |_, _| {});
 
-        (relation, r#enum, domain)
+        (relation, r#enum, domain, composite)
     }
 
     fn relation(old: &crate::inspect::Relation, new: &crate::inspect::Relation) -> Column {
@@ -149,7 +150,7 @@ impl Stack<(), ()> for () {
     fn add_child(&mut self, _: ()) {}
 }
 
-diff!(Schema, (Relation, Enum, Domain), crate::inspect::Schema);
+diff!(Schema, (Relation, Enum, Domain, Composite), crate::inspect::Schema);
 
 impl Schema {
     fn sql_added(&self, new: &crate::inspect::Schema) -> String {
@@ -170,11 +171,12 @@ impl Schema {
     }
 }
 
-impl Sql for &(Relation, Enum, Domain) {
+impl Sql for &(Relation, Enum, Domain, Composite) {
     fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result {
         self.0.sql(output)?;
         self.1.sql(output)?;
         self.2.sql(output)?;
+        self.3.sql(output)?;
 
         Ok(())
     }
@@ -311,6 +313,42 @@ impl Domain {
             (_, Some(default)) => sql.push_str(&format!("alter domain \"{}\" set default {default};\n", new.fullname())),
             (Some(_), None) => sql.push_str(&format!("alter domain \"{}\" drop default;\n", new.fullname())),
         }
+
+        sql
+    }
+}
+
+diff!(Composite, (), crate::inspect::Composite);
+
+impl Composite {
+    fn sql_added(&self, new: &crate::inspect::Composite) -> String {
+        let mut sql = String::new();
+
+        sql.push_str(&format!("create type \"{}\" as (\n", new.fullname()));
+
+        for field in &new.fields {
+            sql.push_str(&format!("    {} {},\n", field.name, field.ty));
+        }
+
+        sql = sql.trim_end_matches(",\n").to_string();
+        sql.push_str(&format!("\n);\n"));
+
+        sql
+    }
+
+    fn sql_removed(&self, old: &crate::inspect::Composite) -> String {
+        format!("drop type \"{}\";\n", old.fullname())
+    }
+
+    fn sql_updated(
+        &self,
+        old: &crate::inspect::Composite,
+        new: &crate::inspect::Composite,
+    ) -> String {
+        let mut sql = String::new();
+
+        sql.push_str(&self.sql_removed(old));
+        sql.push_str(&self.sql_added(new));
 
         sql
     }

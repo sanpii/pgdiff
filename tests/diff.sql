@@ -25,3 +25,13 @@ drop domain "public.old_domain";
 alter domain "public.updated_domain" drop constraint;
 alter domain "public.updated_domain" set not null;
 alter domain "public.updated_domain" set default ''::text;
+create type "public.new_composite" as (
+    name text,
+    description varchar(255)
+);
+drop type "public.old_composite";
+drop type "public.updated_composite";
+create type "public.updated_composite" as (
+    r float8,
+    i float8
+);

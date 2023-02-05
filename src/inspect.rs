@@ -23,6 +23,7 @@ pub struct Schema {
     pub relations: BTreeMap<String, Relation>,
     pub enums: BTreeMap<String, Enum>,
     pub domains: BTreeMap<String, Domain>,
+    pub composites: BTreeMap<String, Composite>,
 }
 
 impl Schema {
@@ -35,6 +36,7 @@ impl Schema {
             relations: BTreeMap::new(),
             enums: BTreeMap::new(),
             domains: BTreeMap::new(),
+            composites: BTreeMap::new(),
         };
 
         schema.relations = elephantry::inspect::schema(conn, &schema.name)?
@@ -63,6 +65,16 @@ impl Schema {
                 (
                     format!("{}.{}", schema.name, x.name),
                     Domain::new(&schema, x),
+                )
+            })
+            .collect();
+
+        schema.composites = elephantry::inspect::composites(conn, &schema.name)?
+            .iter()
+            .map(|x| {
+                (
+                    format!("{}.{}", schema.name, x.name),
+                    Composite::new(&schema, x),
                 )
             })
             .collect();
@@ -216,6 +228,44 @@ impl Eq for Domain {}
 
 impl std::ops::Deref for Domain {
     type Target = elephantry::inspect::Domain;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Composite {
+    inner: elephantry::inspect::Composite,
+    pub parent: Schema,
+}
+
+impl Composite {
+    fn new(schema: &Schema, composite: &elephantry::inspect::Composite) -> Self {
+        Self {
+            parent: schema.clone(),
+            inner: composite.clone(),
+        }
+    }
+
+    pub fn fullname(&self) -> String {
+        format!(
+            "{}.{}",
+            self.parent.name, self.name
+        )
+    }
+}
+
+impl PartialEq for Composite {
+    fn eq(&self, other: &Self) -> bool {
+        self.inner == other.inner
+    }
+}
+
+impl Eq for Composite {}
+
+impl std::ops::Deref for Composite {
+    type Target = elephantry::inspect::Composite;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
