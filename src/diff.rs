@@ -53,13 +53,14 @@ impl Diff {
         iter(&old.schemas, &new.schemas, |old, new| Self::schema(old, new))
     }
 
-    fn schema(old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> (Relation, Enum, Domain, Composite) {
+    fn schema(old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> (Relation, Enum, Domain, Composite, Extension) {
         let relation = iter(&old.relations, &new.relations, |old, new| Self::relation(old, new));
         let r#enum = iter(&old.enums, &new.enums, |_, _| {});
         let domain = iter(&old.domains, &new.domains, |_, _| {});
         let composite = iter(&old.composites, &new.composites, |_, _| {});
+        let extension = iter(&old.extensions, &new.extensions, |_, _| {});
 
-        (relation, r#enum, domain, composite)
+        (relation, r#enum, domain, composite, extension)
     }
 
     fn relation(old: &crate::inspect::Relation, new: &crate::inspect::Relation) -> Column {
@@ -150,7 +151,7 @@ impl Stack<(), ()> for () {
     fn add_child(&mut self, _: ()) {}
 }
 
-diff!(Schema, (Relation, Enum, Domain, Composite), crate::inspect::Schema);
+diff!(Schema, (Relation, Enum, Domain, Composite, Extension), crate::inspect::Schema);
 
 impl Schema {
     fn sql_added(&self, new: &crate::inspect::Schema) -> String {
@@ -171,12 +172,13 @@ impl Schema {
     }
 }
 
-impl Sql for &(Relation, Enum, Domain, Composite) {
+impl Sql for &(Relation, Enum, Domain, Composite, Extension) {
     fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result {
         self.0.sql(output)?;
         self.1.sql(output)?;
         self.2.sql(output)?;
         self.3.sql(output)?;
+        self.4.sql(output)?;
 
         Ok(())
     }
@@ -407,6 +409,22 @@ impl Column {
         }
 
         sql
+    }
+}
+
+diff!(Extension, (), crate::inspect::Extension);
+
+impl Extension {
+    fn sql_added(&self, new: &crate::inspect::Extension) -> String {
+        format!("create extension \"{}\";\n", new.name)
+    }
+
+    fn sql_removed(&self, old: &crate::inspect::Extension) -> String {
+        format!("drop extension \"{}\";\n", old.name)
+    }
+
+    fn sql_updated(&self, old: &crate::inspect::Extension, new: &crate::inspect::Extension) -> String {
+        format!("alter extension \"{}\" update to '{}';\n", old.name, new.version)
     }
 }
 

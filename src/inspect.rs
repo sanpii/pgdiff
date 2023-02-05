@@ -24,6 +24,7 @@ pub struct Schema {
     pub enums: BTreeMap<String, Enum>,
     pub domains: BTreeMap<String, Domain>,
     pub composites: BTreeMap<String, Composite>,
+    pub extensions: BTreeMap<String, Extension>,
 }
 
 impl Schema {
@@ -37,6 +38,7 @@ impl Schema {
             enums: BTreeMap::new(),
             domains: BTreeMap::new(),
             composites: BTreeMap::new(),
+            extensions: BTreeMap::new(),
         };
 
         schema.relations = elephantry::inspect::schema(conn, &schema.name)?
@@ -75,6 +77,16 @@ impl Schema {
                 (
                     format!("{}.{}", schema.name, x.name),
                     Composite::new(&schema, x),
+                )
+            })
+            .collect();
+
+        schema.extensions = elephantry::inspect::extensions(conn, &schema.name)?
+            .iter()
+            .map(|x| {
+                (
+                    format!("{}.{}", schema.name, x.name),
+                    Extension::new(&schema, x),
                 )
             })
             .collect();
@@ -309,6 +321,46 @@ impl Eq for Column {}
 
 impl std::ops::Deref for Column {
     type Target = elephantry::inspect::Column;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Extension {
+    inner: elephantry::inspect::Extension,
+    pub parent: Schema,
+}
+
+impl Extension {
+    fn new(schema: &Schema, extension: &elephantry::inspect::Extension) -> Self {
+        Self {
+            parent: schema.clone(),
+            inner: extension.clone(),
+        }
+    }
+
+    pub fn fullname(&self) -> String {
+        format!(
+            "{}.{}",
+            self.parent.name, self.name
+        )
+    }
+}
+
+impl PartialEq for Extension {
+    fn eq(&self, other: &Self) -> bool {
+        self.inner.name == other.inner.name
+            && self.inner.version == other.inner.version
+            && self.inner.description == other.inner.description
+    }
+}
+
+impl Eq for Extension {}
+
+impl std::ops::Deref for Extension {
+    type Target = elephantry::inspect::Extension;
 
     fn deref(&self) -> &Self::Target {
         &self.inner

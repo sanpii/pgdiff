@@ -31,3 +31,6 @@ begin
         create type updated_composite as (r double precision);
     end if;
 end$$;
+
+create extension if not exists "uuid-ossp";
+create extension if not exists hstore with version '1.4';

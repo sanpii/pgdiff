@@ -39,3 +39,6 @@ begin
         create type updated_composite as (r double precision, i double precision);
     end if;
 end$$;
+
+create extension if not exists xml2;
+create extension if not exists hstore version '1.8';

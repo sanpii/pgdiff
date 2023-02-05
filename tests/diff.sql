@@ -35,3 +35,6 @@ create type "public.updated_composite" as (
     r float8,
     i float8
 );
+create extension "xml2";
+drop extension "uuid-ossp";
+alter extension "hstore" update to '1.8';
