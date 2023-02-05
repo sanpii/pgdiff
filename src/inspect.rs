@@ -22,6 +22,7 @@ pub struct Schema {
     inner: elephantry::inspect::Schema,
     pub relations: BTreeMap<String, Relation>,
     pub enums: BTreeMap<String, Enum>,
+    pub domains: BTreeMap<String, Domain>,
 }
 
 impl Schema {
@@ -33,6 +34,7 @@ impl Schema {
             inner: inner.clone(),
             relations: BTreeMap::new(),
             enums: BTreeMap::new(),
+            domains: BTreeMap::new(),
         };
 
         schema.relations = elephantry::inspect::schema(conn, &schema.name)?
@@ -51,6 +53,16 @@ impl Schema {
                 (
                     format!("{}.{}", schema.name, x.name),
                     Enum::new(&schema, x),
+                )
+            })
+            .collect();
+
+        schema.domains = elephantry::inspect::domains(conn, &schema.name)?
+            .iter()
+            .map(|x| {
+                (
+                    format!("{}.{}", schema.name, x.name),
+                    Domain::new(&schema, x),
                 )
             })
             .collect();
@@ -166,6 +178,44 @@ impl Eq for Enum {}
 
 impl std::ops::Deref for Enum {
     type Target = elephantry::inspect::Enum;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Domain {
+    inner: elephantry::inspect::Domain,
+    pub parent: Schema,
+}
+
+impl Domain {
+    fn new(schema: &Schema, domain: &elephantry::inspect::Domain) -> Self {
+        Self {
+            parent: schema.clone(),
+            inner: domain.clone(),
+        }
+    }
+
+    pub fn fullname(&self) -> String {
+        format!(
+            "{}.{}",
+            self.parent.name, self.name
+        )
+    }
+}
+
+impl PartialEq for Domain {
+    fn eq(&self, other: &Self) -> bool {
+        self.inner == other.inner
+    }
+}
+
+impl Eq for Domain {}
+
+impl std::ops::Deref for Domain {
+    type Target = elephantry::inspect::Domain;
 
     fn deref(&self) -> &Self::Target {
         &self.inner

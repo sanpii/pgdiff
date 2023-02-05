@@ -26,4 +26,10 @@ begin
     if not exists (select 1 from pg_type where typname = 'updated_enum') then
         create type updated_enum as enum('sad', 'neutral', 'ok');
     end if;
+    if not exists (select 1 from pg_type where typname = 'new_domain') then
+        create domain new_domain as text check(value ~ '^http://');
+    end if;
+    if not exists (select 1 from pg_type where typname = 'updated_domain') then
+        create domain updated_domain as text not null default '';
+    end if;
 end$$;

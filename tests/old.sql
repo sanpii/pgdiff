@@ -18,4 +18,10 @@ begin
     if not exists (select 1 from pg_type where typname = 'updated_enum') then
         create type updated_enum as enum('sad', 'ok', 'happy');
     end if;
+    if not exists (select 1 from pg_type where typname = 'old_domain') then
+        create domain old_domain as text;
+    end if;
+    if not exists (select 1 from pg_type where typname = 'updated_domain') then
+        create domain updated_domain as text check (value is not null);
+    end if;
 end$$;

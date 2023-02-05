@@ -53,12 +53,12 @@ impl Diff {
         iter(&old.schemas, &new.schemas, |old, new| Self::schema(old, new))
     }
 
-    fn schema(old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> (Relation, Enum) {
+    fn schema(old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> (Relation, Enum, Domain) {
         let relation = iter(&old.relations, &new.relations, |old, new| Self::relation(old, new));
-
         let r#enum = iter(&old.enums, &new.enums, |_, _| {});
+        let domain = iter(&old.domains, &new.domains, |_, _| {});
 
-        (relation, r#enum)
+        (relation, r#enum, domain)
     }
 
     fn relation(old: &crate::inspect::Relation, new: &crate::inspect::Relation) -> Column {
@@ -149,13 +149,13 @@ impl Stack<(), ()> for () {
     fn add_child(&mut self, _: ()) {}
 }
 
-diff!(Schema, (Relation, Enum), crate::inspect::Schema);
+diff!(Schema, (Relation, Enum, Domain), crate::inspect::Schema);
 
 impl Schema {
     fn sql_added(&self, new: &crate::inspect::Schema) -> String {
         let mut sql = format!("create schema {};\n", new.fullname());
 
-        let comment = comment("schema", &new.fullname(), None, new.comment.as_deref());
+        let comment = comment("schema", &new.fullname(), None, Some(&new.comment));
         sql.push_str(&comment);
 
         sql
@@ -166,13 +166,15 @@ impl Schema {
     }
 
     fn sql_updated(&self, old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> String {
-        comment("schema", &old.fullname(), old.comment.as_deref(), new.comment.as_deref())
+        comment("schema", &old.fullname(), Some(&old.comment), Some(&new.comment))
+    }
 }
 
-impl Sql for &(Relation, Enum) {
+impl Sql for &(Relation, Enum, Domain) {
     fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result {
         self.0.sql(output)?;
         self.1.sql(output)?;
+        self.2.sql(output)?;
 
         Ok(())
     }
@@ -254,6 +256,60 @@ impl Enum {
                     sql.push_str(&format!("alter type \"{}\" add value '{new_element}';\n", new.fullname()));
                 }
             }
+        }
+
+        sql
+    }
+}
+
+diff!(Domain, (), crate::inspect::Domain);
+
+impl Domain {
+    fn sql_added(&self, new: &crate::inspect::Domain) -> String {
+        let mut sql = format!("create domain \"{}\" as {}", new.fullname(), new.ty);
+
+        if let Some(constraint) = &new.constraint {
+            sql.push_str(&format!(" {constraint}"));
+        }
+
+        sql.push_str(";\n");
+
+        sql
+    }
+
+    fn sql_removed(&self, old: &crate::inspect::Domain) -> String {
+        format!("drop domain \"{}\";\n", old.fullname())
+    }
+
+    fn sql_updated(
+        &self,
+        old: &crate::inspect::Domain,
+        new: &crate::inspect::Domain,
+    ) -> String {
+        let mut sql = String::new();
+
+        match (&old.constraint, &new.constraint) {
+            (None, None) => (),
+            (Some(_), Some(constraint)) => {
+                sql.push_str(&format!("alter domain \"{}\" drop constraint;\n", new.fullname()));
+                sql.push_str(&format!("alter domain \"{}\" add {constraint};\n", new.fullname()));
+            },
+            (None, Some(constraint)) => sql.push_str(&format!("alter domain \"{}\" add {constraint};\n", new.fullname())),
+            (Some(_), None) => sql.push_str(&format!("alter domain \"{}\" drop constraint;\n", new.fullname())),
+        }
+
+        if old.is_notnull != new.is_notnull {
+            if new.is_notnull {
+                sql.push_str(&format!("alter domain \"{}\" set not null;\n", new.fullname()));
+            } else {
+                sql.push_str(&format!("alter domain \"{}\" drop not null;\n", new.fullname()));
+            }
+        }
+
+        match (&old.default, &new.default) {
+            (None, None) => (),
+            (_, Some(default)) => sql.push_str(&format!("alter domain \"{}\" set default {default};\n", new.fullname())),
+            (Some(_), None) => sql.push_str(&format!("alter domain \"{}\" drop default;\n", new.fullname())),
         }
 
         sql

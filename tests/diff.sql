@@ -20,3 +20,8 @@ create type "public.new_enum" as enum('sad', 'ok', 'happy');
 drop type "public.old_enum";
 alter type "public.updated_enum" drop attribute 'happy';
 alter type "public.updated_enum" add value 'neutral' after 'sad';
+create domain "public.new_domain" as text CHECK ((VALUE ~ '^http://'::text));
+drop domain "public.old_domain";
+alter domain "public.updated_domain" drop constraint;
+alter domain "public.updated_domain" set not null;
+alter domain "public.updated_domain" set default ''::text;
