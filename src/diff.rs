@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 trait Comparable: std::fmt::Debug + Eq {}
 
@@ -11,8 +11,8 @@ trait Stack<C: Comparable, CH>: Default {
 }
 
 fn iter<S: Stack<C, CH>, C: Comparable, CH, F: FnMut(&C, &C) -> CH>(
-    old: &HashMap<String, C>,
-    new: &HashMap<String, C>,
+    old: &BTreeMap<String, C>,
+    new: &BTreeMap<String, C>,
     mut next: F,
 ) -> S {
     let mut stack = S::default();

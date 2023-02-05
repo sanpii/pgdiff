@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 #[derive(Debug)]
 pub struct Database {
-    pub schemas: HashMap<String, Schema>,
+    pub schemas: BTreeMap<String, Schema>,
 }
 
 impl Database {
@@ -11,7 +11,7 @@ impl Database {
         let schemas = elephantry::inspect::database(&conn)?
             .iter()
             .map(|x| (x.name.clone(), Schema::new(x, &conn).unwrap()))
-            .collect::<HashMap<String, Schema>>();
+            .collect::<BTreeMap<String, Schema>>();
 
         Ok(Self { schemas })
     }
@@ -28,7 +28,7 @@ impl Eq for Database {}
 #[derive(Clone, Debug)]
 pub struct Schema {
     inner: elephantry::inspect::Schema,
-    pub relations: HashMap<String, Relation>,
+    pub relations: BTreeMap<String, Relation>,
 }
 
 impl Schema {
@@ -38,7 +38,7 @@ impl Schema {
     ) -> crate::Result<Self> {
         let mut schema = Self {
             inner: inner.clone(),
-            relations: HashMap::new(),
+            relations: BTreeMap::new(),
         };
 
         schema.relations = elephantry::inspect::schema(conn, &schema.name)?
@@ -79,7 +79,7 @@ impl std::ops::Deref for Schema {
 pub struct Relation {
     inner: elephantry::inspect::Relation,
     parent: Schema,
-    pub columns: HashMap<String, Column>,
+    pub columns: BTreeMap<String, Column>,
 }
 
 impl Relation {
@@ -91,7 +91,7 @@ impl Relation {
         let mut relation = Self {
             parent: schema.clone(),
             inner: relation.clone(),
-            columns: HashMap::new(),
+            columns: BTreeMap::new(),
         };
 
         relation.columns = elephantry::inspect::relation(conn, &schema.name, &relation.name)?
