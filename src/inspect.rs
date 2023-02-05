@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Database {
     pub schemas: BTreeMap<String, Schema>,
 }
@@ -16,14 +16,6 @@ impl Database {
         Ok(Self { schemas })
     }
 }
-
-impl PartialEq for Database {
-    fn eq(&self, other: &Self) -> bool {
-        true
-    }
-}
-
-impl Eq for Database {}
 
 #[derive(Clone, Debug)]
 pub struct Schema {
