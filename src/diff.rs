@@ -144,7 +144,12 @@ diff!(Schema, Relation, crate::inspect::Schema);
 
 impl Schema {
     fn sql_added(&self, new: &crate::inspect::Schema) -> String {
-        format!("create schema {};\n", new.fullname())
+        let mut sql = format!("create schema {};\n", new.fullname());
+
+        let comment = comment("schema", &new.fullname(), None, new.comment.as_deref());
+        sql.push_str(&comment);
+
+        sql
     }
 
     fn sql_removed(&self, old: &crate::inspect::Schema) -> String {
@@ -152,11 +157,7 @@ impl Schema {
     }
 
     fn sql_updated(&self, old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> String {
-        match (&old.comment, &new.comment) {
-            (_, Some(comment)) => format!("comment on schema {} is '{comment}';\n", old.fullname()),
-            (Some(_), None) => format!("comment on schema {} is null;\n", old.fullname()),
-            (None, None) => String::new(),
-        }
+        comment("schema", &old.fullname(), old.comment.as_deref(), new.comment.as_deref())
     }
 }
 
@@ -178,6 +179,9 @@ impl Relation {
 
         sql.push_str("\n);\n");
 
+        let comment = comment("table", &new.fullname(), None, new.comment.as_deref());
+        sql.push_str(&comment);
+
         sql
     }
 
@@ -190,11 +194,7 @@ impl Relation {
         old: &crate::inspect::Relation,
         new: &crate::inspect::Relation,
     ) -> String {
-        match (&old.comment, &new.comment) {
-            (_, Some(comment)) => format!("comment on table {} is '{comment}';\n", old.fullname()),
-            (Some(_), None) => format!("comment on table {} is null;\n", old.fullname()),
-            (None, None) => String::new(),
-        }
+        comment("table", &old.fullname(), old.comment.as_deref(), new.comment.as_deref())
     }
 }
 
@@ -202,12 +202,17 @@ diff!(Column, (), crate::inspect::Column);
 
 impl Column {
     fn sql_added(&self, new: &crate::inspect::Column) -> String {
-        format!(
+        let mut sql = format!(
             "alter table \"{}\" add column \"{}\" {};\n",
             new.parent.fullname(),
             new.name,
             new.ty
-        )
+        );
+
+        let comment = comment("column", &new.fullname(), None, new.comment.as_deref());
+        sql.push_str(&comment);
+
+        sql
     }
 
     fn sql_removed(&self, old: &crate::inspect::Column) -> String {
@@ -219,7 +224,7 @@ impl Column {
     }
 
     fn sql_updated(&self, old: &crate::inspect::Column, new: &crate::inspect::Column) -> String {
-        let mut s = match (&old.default, &new.default) {
+        let mut sql = match (&old.default, &new.default) {
             (_, Some(default)) => format!(
                 "alter table \"{}\" alter column \"{}\" set default '{default}';\n",
                 old.parent.fullname(),
@@ -233,8 +238,11 @@ impl Column {
             (None, None) => String::new(),
         };
 
+        let comment = comment("column", &old.fullname(), old.comment.as_deref(), new.comment.as_deref());
+        sql.push_str(&comment);
+
         if old.ty != new.ty {
-            s.push_str(&format!(
+            sql.push_str(&format!(
                 "alter table \"{}\" alter column \"{}\" type {};\n",
                 old.parent.fullname(),
                 old.name,
@@ -242,6 +250,18 @@ impl Column {
             ));
         }
 
-        s
+        sql
+    }
+}
+
+fn comment(ty: &str, fullname: &str, old: Option<&str>, new: Option<&str>) -> String {
+    if old == new {
+        return String::new();
+    }
+
+    match (&old, &new) {
+        (_, Some(comment)) => format!("comment on {ty} {fullname} is '{comment}';\n"),
+        (Some(_), None) => format!("comment on {ty} {fullname} is null;\n"),
+        _ => String::new(),
     }
 }
