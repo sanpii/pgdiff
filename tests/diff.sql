@@ -16,3 +16,7 @@ alter table "public.updated_table" alter column "new_default" set default 'now()
 alter table "public.updated_table" alter column "old_default" drop default;
 comment on column public.updated_table.updated_column is 'updated column';
 alter table "public.updated_table" alter column "updated_column" type int4;
+create type "public.new_enum" as enum('sad', 'ok', 'happy');
+drop type "public.old_enum";
+alter type "public.updated_enum" drop attribute 'happy';
+alter type "public.updated_enum" add value 'neutral' after 'sad';

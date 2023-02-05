@@ -7,7 +7,6 @@ trait Stack<C: Comparable, CH>: Default {
     fn remove(&mut self, old: &C);
     fn update(&mut self, old: &C, new: &C);
     fn add_child(&mut self, children: CH);
-    fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result;
 }
 
 fn iter<S: Stack<C, CH>, C: Comparable, CH, F: FnMut(&C, &C) -> CH>(
@@ -54,10 +53,12 @@ impl Diff {
         iter(&old.schemas, &new.schemas, |old, new| Self::schema(old, new))
     }
 
-    fn schema(old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> Relation {
-        iter(&old.relations, &new.relations, |old, new| {
-            Self::relation(old, new)
-        })
+    fn schema(old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> (Relation, Enum) {
+        let relation = iter(&old.relations, &new.relations, |old, new| Self::relation(old, new));
+
+        let r#enum = iter(&old.enums, &new.enums, |_, _| {});
+
+        (relation, r#enum)
     }
 
     fn relation(old: &crate::inspect::Relation, new: &crate::inspect::Relation) -> Column {
@@ -70,6 +71,10 @@ impl Diff {
 
         Ok(s)
     }
+}
+
+trait Sql {
+    fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result;
 }
 
 macro_rules! diff {
@@ -100,7 +105,9 @@ macro_rules! diff {
             fn add_child(&mut self, children: $child) {
                 self.children.push(children);
             }
+        }
 
+        impl Sql for $ty {
             fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result {
                 for new in &self.added {
                     write!(output, "{}", self.sql_added(new))?;
@@ -126,6 +133,12 @@ macro_rules! diff {
 
 impl Comparable for () {}
 
+impl Sql for () {
+    fn sql(&self, _: &mut dyn std::fmt::Write) -> crate::Result {
+        Ok(())
+    }
+}
+
 impl Stack<(), ()> for () {
     fn add(&mut self, _: &()) {}
 
@@ -134,13 +147,9 @@ impl Stack<(), ()> for () {
     fn update(&mut self, _: &(), _: &()) {}
 
     fn add_child(&mut self, _: ()) {}
-
-    fn sql(&self, _: &mut dyn std::fmt::Write) -> crate::Result {
-        Ok(())
-    }
 }
 
-diff!(Schema, Relation, crate::inspect::Schema);
+diff!(Schema, (Relation, Enum), crate::inspect::Schema);
 
 impl Schema {
     fn sql_added(&self, new: &crate::inspect::Schema) -> String {
@@ -158,6 +167,14 @@ impl Schema {
 
     fn sql_updated(&self, old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> String {
         comment("schema", &old.fullname(), old.comment.as_deref(), new.comment.as_deref())
+}
+
+impl Sql for &(Relation, Enum) {
+    fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result {
+        self.0.sql(output)?;
+        self.1.sql(output)?;
+
+        Ok(())
     }
 }
 
@@ -195,6 +212,51 @@ impl Relation {
         new: &crate::inspect::Relation,
     ) -> String {
         comment("table", &old.fullname(), old.comment.as_deref(), new.comment.as_deref())
+    }
+}
+
+diff!(Enum, (), crate::inspect::Enum);
+
+impl Enum {
+    fn sql_added(&self, new: &crate::inspect::Enum) -> String {
+        let elements = new.elements.iter().map(|x| format!("'{x}'")).collect::<Vec<_>>().join(", ");
+
+        format!("create type \"{}\" as enum({elements});\n", new.fullname())
+    }
+
+    fn sql_removed(&self, old: &crate::inspect::Enum) -> String {
+        format!("drop type \"{}\";\n", old.fullname())
+    }
+
+    fn sql_updated(
+        &self,
+        old: &crate::inspect::Enum,
+        new: &crate::inspect::Enum,
+    ) -> String {
+        let mut sql = String::new();
+
+        let old_elements = &old.elements;
+        let new_elements = &new.elements;
+
+        for old_element in old_elements {
+            if !new_elements.contains(&old_element) {
+                sql.push_str(&format!("alter type \"{}\" drop attribute '{old_element}';\n", new.fullname()));
+            }
+        }
+
+        for (x, new_element) in new_elements.iter().enumerate() {
+            if !old_elements.contains(&new_element) {
+                if let Some(after) = new_elements.get(x - 1) {
+                    sql.push_str(&format!("alter type \"{}\" add value '{new_element}' after '{after}';\n", new.fullname()));
+                } else if let Some(before) = new_elements.get(x + 1) {
+                    sql.push_str(&format!("alter type \"{}\" add value '{new_element}' before '{before}';\n", new.fullname()));
+                } else {
+                    sql.push_str(&format!("alter type \"{}\" add value '{new_element}';\n", new.fullname()));
+                }
+            }
+        }
+
+        sql
     }
 }
 

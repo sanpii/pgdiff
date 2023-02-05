@@ -17,3 +17,13 @@ create table if not exists updated_table(
 
 comment on column updated_table.new_column is 'new column';
 comment on column updated_table.updated_column is 'updated column';
+
+do $$
+begin
+    if not exists (select 1 from pg_type where typname = 'new_enum') then
+        create type new_enum as enum('sad', 'ok', 'happy');
+    end if;
+    if not exists (select 1 from pg_type where typname = 'updated_enum') then
+        create type updated_enum as enum('sad', 'neutral', 'ok');
+    end if;
+end$$;

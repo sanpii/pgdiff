@@ -29,6 +29,7 @@ impl Eq for Database {}
 pub struct Schema {
     inner: elephantry::inspect::Schema,
     pub relations: BTreeMap<String, Relation>,
+    pub enums: BTreeMap<String, Enum>,
 }
 
 impl Schema {
@@ -39,6 +40,7 @@ impl Schema {
         let mut schema = Self {
             inner: inner.clone(),
             relations: BTreeMap::new(),
+            enums: BTreeMap::new(),
         };
 
         schema.relations = elephantry::inspect::schema(conn, &schema.name)?
@@ -47,6 +49,16 @@ impl Schema {
                 (
                     format!("{}.{}", schema.name, x.name),
                     Relation::new(&schema, x, conn).unwrap(),
+                )
+            })
+            .collect();
+
+        schema.enums = elephantry::inspect::enums(conn, &schema.name)?
+            .iter()
+            .map(|x| {
+                (
+                    format!("{}.{}", schema.name, x.name),
+                    Enum::new(&schema, x),
                 )
             })
             .collect();
@@ -124,6 +136,44 @@ impl Eq for Relation {}
 
 impl std::ops::Deref for Relation {
     type Target = elephantry::inspect::Relation;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Enum {
+    inner: elephantry::inspect::Enum,
+    pub parent: Schema,
+}
+
+impl Enum {
+    fn new(schema: &Schema, r#enum: &elephantry::inspect::Enum) -> Self {
+        Self {
+            parent: schema.clone(),
+            inner: r#enum.clone(),
+        }
+    }
+
+    pub fn fullname(&self) -> String {
+        format!(
+            "{}.{}",
+            self.parent.name, self.name
+        )
+    }
+}
+
+impl PartialEq for Enum {
+    fn eq(&self, other: &Self) -> bool {
+        self.inner == other.inner
+    }
+}
+
+impl Eq for Enum {}
+
+impl std::ops::Deref for Enum {
+    type Target = elephantry::inspect::Enum;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
