@@ -6,8 +6,13 @@ create table public.new_table(
     pk int4 primary key
 );
 comment on table public.new_table is 'new table';
+create view public.new_view as  SELECT new_table.pk
+   FROM new_table;
 drop table public.old_table;
+drop view public.old_view;
 comment on table public.updated_table is null;
+create or replace view public.updated_view as  SELECT new_table.pk
+   FROM new_table;
 alter table "public.updated_table" add column "len" varchar(10);
 alter table "public.updated_table" add column "new_column" text;
 comment on column public.updated_table.new_column is 'new column';

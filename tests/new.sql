@@ -42,3 +42,6 @@ end$$;
 
 create extension if not exists xml2;
 create extension if not exists hstore version '1.8';
+
+create or replace view new_view as select pk from new_table;
+create or replace view updated_view as select pk from new_table;

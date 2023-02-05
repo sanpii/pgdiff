@@ -157,6 +157,7 @@ impl PartialEq for Relation {
         self.inner.ty == other.inner.ty
             && self.inner.name == other.inner.name
             && self.inner.comment == other.inner.comment
+            && self.inner.definition == other.inner.definition
     }
 }
 

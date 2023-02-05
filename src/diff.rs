@@ -54,7 +54,11 @@ impl Diff {
     }
 
     fn schema(old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> (Relation, Enum, Domain, Composite, Extension) {
-        let relation = iter(&old.relations, &new.relations, |old, new| Self::relation(old, new));
+        let relation = iter(&old.relations, &new.relations, |old, new| if old.ty == "table" {
+            Self::relation(old, new)
+        } else {
+            Column::default()
+        });
         let r#enum = iter(&old.enums, &new.enums, |_, _| {});
         let domain = iter(&old.domains, &new.domains, |_, _| {});
         let composite = iter(&old.composites, &new.composites, |_, _| {});
@@ -188,6 +192,14 @@ diff!(Relation, Column, crate::inspect::Relation);
 
 impl Relation {
     fn sql_added(&self, new: &crate::inspect::Relation) -> String {
+        match new.ty.as_str() {
+            "table" => self.create_table(new),
+            "view" => self.create_view(new),
+            _ => String::new(),
+        }
+    }
+
+    fn create_table(&self, new: &crate::inspect::Relation) -> String {
         let mut sql = format!("create table {}(", new.fullname());
 
         for column in new.columns.values() {
@@ -208,8 +220,12 @@ impl Relation {
         sql
     }
 
+    fn create_view(&self, new: &crate::inspect::Relation) -> String {
+        format!("create view {} as {}\n", new.fullname(), new.definition.as_ref().unwrap())
+    }
+
     fn sql_removed(&self, old: &crate::inspect::Relation) -> String {
-        format!("drop table {};\n", old.fullname())
+        format!("drop {} {};\n", old.ty, old.fullname())
     }
 
     fn sql_updated(
@@ -217,7 +233,15 @@ impl Relation {
         old: &crate::inspect::Relation,
         new: &crate::inspect::Relation,
     ) -> String {
-        comment("table", &old.fullname(), old.comment.as_deref(), new.comment.as_deref())
+        let mut sql = String::new();
+
+        if old.ty == "view" {
+            sql.push_str(&format!("create or replace view {} as {}\n", old.fullname(), new.definition.as_ref().unwrap()));
+        }
+
+        sql.push_str(&comment(&old.ty, &old.fullname(), old.comment.as_deref(), new.comment.as_deref()));
+
+        sql
     }
 }
 

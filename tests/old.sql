@@ -34,3 +34,6 @@ end$$;
 
 create extension if not exists "uuid-ossp";
 create extension if not exists hstore with version '1.4';
+
+create or replace view old_view as select 1;
+create or replace view updated_view as select 1;
