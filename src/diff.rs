@@ -55,10 +55,7 @@ impl Diff {
         })
     }
 
-    fn schema(
-        old: &crate::inspect::Schema,
-        new: &crate::inspect::Schema,
-    ) -> (Relation, Enum, Domain, Composite, Extension) {
+    fn schema(old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> SchemaComponents {
         let relation = iter(&old.relations, &new.relations, |old, new| {
             if old.ty == "table" {
                 Self::relation(old, new)
@@ -71,7 +68,13 @@ impl Diff {
         let composite = iter(&old.composites, &new.composites, |_, _| {});
         let extension = iter(&old.extensions, &new.extensions, |_, _| {});
 
-        (relation, r#enum, domain, composite, extension)
+        SchemaComponents {
+            relation,
+            r#enum,
+            domain,
+            composite,
+            extension,
+        }
     }
 
     fn relation(old: &crate::inspect::Relation, new: &crate::inspect::Relation) -> Column {
@@ -162,11 +165,7 @@ impl Stack<(), ()> for () {
     fn add_child(&mut self, _: ()) {}
 }
 
-diff!(
-    Schema,
-    (Relation, Enum, Domain, Composite, Extension),
-    crate::inspect::Schema
-);
+diff!(Schema, SchemaComponents, crate::inspect::Schema);
 
 impl Schema {
     fn sql_added(&self, new: &crate::inspect::Schema) -> String {
@@ -192,13 +191,22 @@ impl Schema {
     }
 }
 
-impl Sql for &(Relation, Enum, Domain, Composite, Extension) {
+#[derive(Debug)]
+struct SchemaComponents {
+    relation: Relation,
+    r#enum: Enum,
+    domain: Domain,
+    composite: Composite,
+    extension: Extension,
+}
+
+impl Sql for &SchemaComponents {
     fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result {
-        self.0.sql(output)?;
-        self.1.sql(output)?;
-        self.2.sql(output)?;
-        self.3.sql(output)?;
-        self.4.sql(output)?;
+        self.relation.sql(output)?;
+        self.r#enum.sql(output)?;
+        self.domain.sql(output)?;
+        self.composite.sql(output)?;
+        self.extension.sql(output)?;
 
         Ok(())
     }
