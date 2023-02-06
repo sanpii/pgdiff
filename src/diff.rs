@@ -498,6 +498,22 @@ impl Column {
         );
         sql.push_str(&comment);
 
+        if old.is_notnull != new.is_notnull {
+            if new.is_notnull {
+                sql.push_str(&format!(
+                    "alter table \"{}\" alter column \"{}\" set not null;\n",
+                    old.parent.fullname(),
+                    old.name
+                ));
+            } else {
+                sql.push_str(&format!(
+                    "alter table \"{}\" alter column \"{}\" drop not null;\n",
+                    old.parent.fullname(),
+                    old.name
+                ));
+            }
+        }
+
         if old.ty != new.ty {
             sql.push_str(&format!(
                 "alter table \"{}\" alter column \"{}\" type {};\n",

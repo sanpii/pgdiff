@@ -6,7 +6,9 @@ create table if not exists updated_table(
     old_column text,
     updated_column text,
     old_default bool default true,
-    new_default timestamptz
+    new_default timestamptz,
+    old_not_null int not null,
+    new_not_null int
 );
 comment on table updated_table is 'need update';
 

@@ -12,7 +12,9 @@ create table if not exists updated_table(
     len varchar(10),
     updated_column int,
     old_default bool,
-    new_default timestamptz default now()
+    new_default timestamptz default now(),
+    old_not_null int,
+    new_not_null int not null
 );
 
 comment on column updated_table.new_column is 'new column';
