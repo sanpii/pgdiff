@@ -1,3 +1,4 @@
+use derive_deref_rs::Deref;
 use std::collections::BTreeMap;
 
 #[derive(Debug, Eq, PartialEq)]
@@ -17,8 +18,9 @@ impl Database {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deref)]
 pub struct Schema {
+    #[deref]
     inner: elephantry::inspect::Schema,
     pub relations: BTreeMap<String, Relation>,
     pub enums: BTreeMap<String, Enum>,
@@ -102,16 +104,9 @@ impl PartialEq for Schema {
 
 impl Eq for Schema {}
 
-impl std::ops::Deref for Schema {
-    type Target = elephantry::inspect::Schema;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deref)]
 pub struct Relation {
+    #[deref]
     inner: elephantry::inspect::Relation,
     parent: Schema,
     pub columns: BTreeMap<String, Column>,
@@ -158,16 +153,9 @@ impl PartialEq for Relation {
 
 impl Eq for Relation {}
 
-impl std::ops::Deref for Relation {
-    type Target = elephantry::inspect::Relation;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deref)]
 pub struct Enum {
+    #[deref]
     inner: elephantry::inspect::Enum,
     pub parent: Schema,
 }
@@ -193,16 +181,9 @@ impl PartialEq for Enum {
 
 impl Eq for Enum {}
 
-impl std::ops::Deref for Enum {
-    type Target = elephantry::inspect::Enum;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deref)]
 pub struct Domain {
+    #[deref]
     inner: elephantry::inspect::Domain,
     pub parent: Schema,
 }
@@ -228,16 +209,9 @@ impl PartialEq for Domain {
 
 impl Eq for Domain {}
 
-impl std::ops::Deref for Domain {
-    type Target = elephantry::inspect::Domain;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deref)]
 pub struct Composite {
+    #[deref]
     inner: elephantry::inspect::Composite,
     pub parent: Schema,
 }
@@ -263,16 +237,9 @@ impl PartialEq for Composite {
 
 impl Eq for Composite {}
 
-impl std::ops::Deref for Composite {
-    type Target = elephantry::inspect::Composite;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deref)]
 pub struct Column {
+    #[deref]
     inner: elephantry::inspect::Column,
     pub parent: Relation,
 }
@@ -306,16 +273,9 @@ impl PartialEq for Column {
 
 impl Eq for Column {}
 
-impl std::ops::Deref for Column {
-    type Target = elephantry::inspect::Column;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deref)]
 pub struct Extension {
+    #[deref]
     inner: elephantry::inspect::Extension,
     pub parent: Schema,
 }
@@ -342,11 +302,3 @@ impl PartialEq for Extension {
 }
 
 impl Eq for Extension {}
-
-impl std::ops::Deref for Extension {
-    type Target = elephantry::inspect::Extension;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}

@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+derive-deref-rs = "0.1"
 elephantry = "3.1"
 thiserror = "1.0"
 
