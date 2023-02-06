@@ -53,12 +53,7 @@ impl Schema {
 
         schema.enums = elephantry::inspect::enums(conn, &schema.name)?
             .iter()
-            .map(|x| {
-                (
-                    format!("{}.{}", schema.name, x.name),
-                    Enum::new(&schema, x),
-                )
-            })
+            .map(|x| (format!("{}.{}", schema.name, x.name), Enum::new(&schema, x)))
             .collect();
 
         schema.domains = elephantry::inspect::domains(conn, &schema.name)?
@@ -186,10 +181,7 @@ impl Enum {
     }
 
     pub fn fullname(&self) -> String {
-        format!(
-            "{}.{}",
-            self.parent.name, self.name
-        )
+        format!("{}.{}", self.parent.name, self.name)
     }
 }
 
@@ -224,10 +216,7 @@ impl Domain {
     }
 
     pub fn fullname(&self) -> String {
-        format!(
-            "{}.{}",
-            self.parent.name, self.name
-        )
+        format!("{}.{}", self.parent.name, self.name)
     }
 }
 
@@ -262,10 +251,7 @@ impl Composite {
     }
 
     pub fn fullname(&self) -> String {
-        format!(
-            "{}.{}",
-            self.parent.name, self.name
-        )
+        format!("{}.{}", self.parent.name, self.name)
     }
 }
 
@@ -343,10 +329,7 @@ impl Extension {
     }
 
     pub fn fullname(&self) -> String {
-        format!(
-            "{}.{}",
-            self.parent.name, self.name
-        )
+        format!("{}.{}", self.parent.name, self.name)
     }
 }
 
