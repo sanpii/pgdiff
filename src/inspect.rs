@@ -18,7 +18,7 @@ impl Database {
     }
 }
 
-#[derive(Clone, Debug, Deref)]
+#[derive(Clone, Debug, Deref, Eq)]
 pub struct Schema {
     #[deref]
     inner: elephantry::inspect::Schema,
@@ -102,9 +102,7 @@ impl PartialEq for Schema {
     }
 }
 
-impl Eq for Schema {}
-
-#[derive(Clone, Debug, Deref)]
+#[derive(Clone, Debug, Deref, Eq)]
 pub struct Relation {
     #[deref]
     inner: elephantry::inspect::Relation,
@@ -151,9 +149,7 @@ impl PartialEq for Relation {
     }
 }
 
-impl Eq for Relation {}
-
-#[derive(Clone, Debug, Deref)]
+#[derive(Clone, Debug, Deref, Eq)]
 pub struct Enum {
     #[deref]
     inner: elephantry::inspect::Enum,
@@ -179,9 +175,7 @@ impl PartialEq for Enum {
     }
 }
 
-impl Eq for Enum {}
-
-#[derive(Clone, Debug, Deref)]
+#[derive(Clone, Debug, Deref, Eq)]
 pub struct Domain {
     #[deref]
     inner: elephantry::inspect::Domain,
@@ -207,9 +201,7 @@ impl PartialEq for Domain {
     }
 }
 
-impl Eq for Domain {}
-
-#[derive(Clone, Debug, Deref)]
+#[derive(Clone, Debug, Deref, Eq)]
 pub struct Composite {
     #[deref]
     inner: elephantry::inspect::Composite,
@@ -235,9 +227,7 @@ impl PartialEq for Composite {
     }
 }
 
-impl Eq for Composite {}
-
-#[derive(Clone, Debug, Deref)]
+#[derive(Clone, Debug, Deref, Eq)]
 pub struct Column {
     #[deref]
     inner: elephantry::inspect::Column,
@@ -271,9 +261,7 @@ impl PartialEq for Column {
     }
 }
 
-impl Eq for Column {}
-
-#[derive(Clone, Debug, Deref)]
+#[derive(Clone, Debug, Deref, Eq)]
 pub struct Extension {
     #[deref]
     inner: elephantry::inspect::Extension,
@@ -301,4 +289,3 @@ impl PartialEq for Extension {
     }
 }
 
-impl Eq for Extension {}
