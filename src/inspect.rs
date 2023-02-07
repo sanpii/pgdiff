@@ -108,6 +108,7 @@ pub struct Relation {
     inner: elephantry::inspect::Relation,
     parent: Schema,
     pub columns: BTreeMap<String, Column>,
+    pub constraints: BTreeMap<String, Constraint>,
 }
 
 impl Relation {
@@ -120,6 +121,7 @@ impl Relation {
             parent: schema.clone(),
             inner: relation.clone(),
             columns: BTreeMap::new(),
+            constraints: BTreeMap::new(),
         };
 
         relation.columns = elephantry::inspect::relation(conn, &schema.name, &relation.name)?
@@ -128,6 +130,16 @@ impl Relation {
                 (
                     format!("{}.{}.{}", schema.name, relation.name, x.name),
                     Column::new(&relation, x),
+                )
+            })
+            .collect();
+
+        relation.constraints = elephantry::inspect::constraints(conn, relation.oid)?
+            .iter()
+            .map(|x| {
+                (
+                    format!("{}.{}", relation.fullname(), x.name),
+                    Constraint::new(&relation, x),
                 )
             })
             .collect();
@@ -232,6 +244,7 @@ pub struct Column {
     #[deref]
     inner: elephantry::inspect::Column,
     pub parent: Relation,
+    pub constraints: BTreeMap<String, Constraint>,
 }
 
 impl Column {
@@ -239,6 +252,7 @@ impl Column {
         Self {
             parent: relation.clone(),
             inner: column.clone(),
+            constraints: BTreeMap::new(),
         }
     }
 
@@ -289,3 +303,28 @@ impl PartialEq for Extension {
     }
 }
 
+#[derive(Clone, Debug, Deref, Eq)]
+pub struct Constraint {
+    #[deref]
+    inner: elephantry::inspect::Constraint,
+    pub parent: String,
+}
+
+impl Constraint {
+    fn new(relation: &Relation, constraint: &elephantry::inspect::Constraint) -> Self {
+        Self {
+            parent: relation.name.clone(),
+            inner: constraint.clone(),
+        }
+    }
+
+    pub fn fullname(&self) -> String {
+        format!("{}.{}", self.parent, self.name)
+    }
+}
+
+impl PartialEq for Constraint {
+    fn eq(&self, other: &Self) -> bool {
+        self.inner.name == other.inner.name && self.inner.definition == other.inner.definition
+    }
+}

@@ -60,7 +60,7 @@ impl Diff {
             if old.ty == "table" {
                 Self::relation(old, new)
             } else {
-                Column::default()
+                RelationComponents::default()
             }
         });
         let r#enum = iter(&old.enums, &new.enums, |_, _| {});
@@ -77,8 +77,14 @@ impl Diff {
         }
     }
 
-    fn relation(old: &crate::inspect::Relation, new: &crate::inspect::Relation) -> Column {
-        iter(&old.columns, &new.columns, |_, _| {})
+    fn relation(
+        old: &crate::inspect::Relation,
+        new: &crate::inspect::Relation,
+    ) -> RelationComponents {
+        let column = iter(&old.columns, &new.columns, |_, _| {});
+        let constraint = iter(&old.constraints, &new.constraints, |_, _| {});
+
+        RelationComponents { column, constraint }
     }
 
     pub fn sql(&self) -> crate::Result<String> {
@@ -212,7 +218,22 @@ impl Sql for &SchemaComponents {
     }
 }
 
-diff!(Relation, Column, crate::inspect::Relation);
+#[derive(Debug, Default)]
+struct RelationComponents {
+    column: Column,
+    constraint: Constraint,
+}
+
+impl Sql for &RelationComponents {
+    fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result {
+        self.column.sql(output)?;
+        self.constraint.sql(output)?;
+
+        Ok(())
+    }
+}
+
+diff!(Relation, RelationComponents, crate::inspect::Relation);
 
 impl Relation {
     fn sql_added(&self, new: &crate::inspect::Relation) -> String {
@@ -547,6 +568,37 @@ impl Extension {
             "alter extension \"{}\" update to '{}';\n",
             old.name, new.version
         )
+    }
+}
+
+diff!(Constraint, (), crate::inspect::Constraint);
+
+impl Constraint {
+    fn sql_added(&self, new: &crate::inspect::Constraint) -> String {
+        format!(
+            "alter table \"{}\" add constraint \"{}\" {};\n",
+            new.parent, new.name, new.definition
+        )
+    }
+
+    fn sql_removed(&self, old: &crate::inspect::Constraint) -> String {
+        format!(
+            "alter table \"{}\" drop constraint \"{}\";\n",
+            old.parent, old.name
+        )
+    }
+
+    fn sql_updated(
+        &self,
+        old: &crate::inspect::Constraint,
+        new: &crate::inspect::Constraint,
+    ) -> String {
+        let mut sql = String::new();
+
+        sql.push_str(&self.sql_removed(old));
+        sql.push_str(&self.sql_added(new));
+
+        sql
     }
 }
 

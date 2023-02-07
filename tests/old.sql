@@ -8,7 +8,10 @@ create table if not exists updated_table(
     old_default bool default true,
     new_default timestamptz,
     old_not_null int not null,
-    new_not_null int
+    new_not_null int,
+    old_check text check (char_length(old_check) = 5),
+    new_check text,
+    updated_check text check(char_length(updated_check) = 1)
 );
 comment on table updated_table is 'need update';
 

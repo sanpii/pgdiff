@@ -14,7 +14,10 @@ create table if not exists updated_table(
     old_default bool,
     new_default timestamptz default now(),
     old_not_null int,
-    new_not_null int not null
+    new_not_null int not null,
+    old_check text,
+    new_check text check (char_length(new_check) = 5),
+    updated_check text check(char_length(updated_check) = 2)
 );
 
 comment on column updated_table.new_column is 'new column';
