@@ -1,11 +1,6 @@
 #[test]
 fn diff() -> Result<(), Box<dyn std::error::Error>> {
-    let old = db("OLD_URL", include_str!("old.sql"))?;
-    let new = db("NEW_URL", include_str!("new.sql"))?;
-
-    let pgdiff = pgdiff::diff::Diff::from(&old, &new);
-
-    let actual = pgdiff.sql()?;
+    let actual = load_diff()?;
     let expected = include_str!("diff.sql");
 
     if actual != expected {
@@ -25,6 +20,30 @@ fn diff() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+#[test]
+fn syntax() -> Result<(), Box<dyn std::error::Error>> {
+    let diff = load_diff()?;
+
+    let sql = format!("do $syntax_check$ begin return;{diff}end; $syntax_check$;");
+
+    let url = std::env::var("NEW_URL").unwrap();
+    let db = elephantry::Connection::new(&url)?;
+    db.execute(&sql)?;
+
+    Ok(())
+}
+
+fn load_diff() -> Result<String, Box<dyn std::error::Error>> {
+    let old = db("OLD_URL", include_str!("old.sql"))?;
+    let new = db("NEW_URL", include_str!("new.sql"))?;
+
+    let pgdiff = pgdiff::diff::Diff::from(&old, &new);
+
+    let diff = pgdiff.sql()?;
+
+    Ok(diff)
 }
 
 fn db(env: &str, sql: &str) -> Result<pgdiff::inspect::Database, Box<dyn std::error::Error>> {
