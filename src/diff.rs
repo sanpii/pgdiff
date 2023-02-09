@@ -64,7 +64,9 @@ impl Diff {
             }
         });
         let r#enum = iter(&old.enums, &new.enums, |_, _| {});
-        let domain = iter(&old.domains, &new.domains, |_, _| {});
+        let domain = iter(&old.domains, &new.domains, |old, new| {
+            Self::constraint(old, new)
+        });
         let composite = iter(&old.composites, &new.composites, |_, _| {});
         let extension = iter(&old.extensions, &new.extensions, |_, _| {});
 
@@ -85,6 +87,10 @@ impl Diff {
         let constraint = iter(&old.constraints, &new.constraints, |_, _| {});
 
         RelationComponents { column, constraint }
+    }
+
+    fn constraint(old: &crate::inspect::Domain, new: &crate::inspect::Domain) -> Constraint {
+        iter(&old.constraints, &new.constraints, |_, _| {})
     }
 
     pub fn sql(&self) -> crate::Result<String> {
@@ -361,14 +367,14 @@ impl Enum {
     }
 }
 
-diff!(Domain, (), crate::inspect::Domain);
+diff!(Domain, Constraint, crate::inspect::Domain);
 
 impl Domain {
     fn sql_added(&self, new: &crate::inspect::Domain) -> String {
         let mut sql = format!("create domain \"{}\" as {}", new.fullname(), new.ty);
 
-        if let Some(constraint) = &new.constraint {
-            sql.push_str(&format!(" {constraint}"));
+        for constraint in new.constraints.values() {
+            sql.push_str(&format!(" {}", constraint.definition));
         }
 
         sql.push_str(";\n");
@@ -382,28 +388,6 @@ impl Domain {
 
     fn sql_updated(&self, old: &crate::inspect::Domain, new: &crate::inspect::Domain) -> String {
         let mut sql = String::new();
-
-        match (&old.constraint, &new.constraint) {
-            (None, None) => (),
-            (Some(_), Some(constraint)) => {
-                sql.push_str(&format!(
-                    "alter domain \"{}\" drop constraint;\n",
-                    new.fullname()
-                ));
-                sql.push_str(&format!(
-                    "alter domain \"{}\" add {constraint};\n",
-                    new.fullname()
-                ));
-            }
-            (None, Some(constraint)) => sql.push_str(&format!(
-                "alter domain \"{}\" add {constraint};\n",
-                new.fullname()
-            )),
-            (Some(_), None) => sql.push_str(&format!(
-                "alter domain \"{}\" drop constraint;\n",
-                new.fullname()
-            )),
-        }
 
         if old.is_notnull != new.is_notnull {
             if new.is_notnull {
@@ -576,15 +560,15 @@ diff!(Constraint, (), crate::inspect::Constraint);
 impl Constraint {
     fn sql_added(&self, new: &crate::inspect::Constraint) -> String {
         format!(
-            "alter table \"{}\" add constraint \"{}\" {};\n",
-            new.parent, new.name, new.definition
+            "alter {} \"{}\" add constraint \"{}\" {};\n",
+            new.parent_type, new.parent_name, new.name, new.definition
         )
     }
 
     fn sql_removed(&self, old: &crate::inspect::Constraint) -> String {
         format!(
-            "alter table \"{}\" drop constraint \"{}\";\n",
-            old.parent, old.name
+            "alter {} \"{}\" drop constraint \"{}\";\n",
+            old.parent_type, old.parent_name, old.name
         )
     }
 

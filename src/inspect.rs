@@ -139,7 +139,7 @@ impl Relation {
             .map(|x| {
                 (
                     format!("{}.{}", relation.fullname(), x.name),
-                    Constraint::new(&relation, x),
+                    Constraint::new(&relation.ty, &relation.fullname(), x),
                 )
             })
             .collect();
@@ -192,14 +192,23 @@ pub struct Domain {
     #[deref]
     inner: elephantry::inspect::Domain,
     pub parent: Schema,
+    pub constraints: BTreeMap<String, Constraint>,
 }
 
 impl Domain {
     fn new(schema: &Schema, domain: &elephantry::inspect::Domain) -> Self {
-        Self {
+        let mut d = Self {
             parent: schema.clone(),
             inner: domain.clone(),
-        }
+            constraints: BTreeMap::new(),
+        };
+
+        d.constraints = domain.constraints
+            .iter()
+            .map(|x| (x.name.clone(), Constraint::new("domain", &d.fullname(), x)))
+            .collect();
+
+        d
     }
 
     pub fn fullname(&self) -> String {
@@ -257,10 +266,7 @@ impl Column {
     }
 
     pub fn fullname(&self) -> String {
-        format!(
-            "{}.{}.{}",
-            self.parent.parent.name, self.parent.name, self.name
-        )
+        format!("{}.{}", self.parent.fullname(), self.name)
     }
 }
 
@@ -307,19 +313,21 @@ impl PartialEq for Extension {
 pub struct Constraint {
     #[deref]
     inner: elephantry::inspect::Constraint,
-    pub parent: String,
+    pub parent_name: String,
+    pub parent_type: String,
 }
 
 impl Constraint {
-    fn new(relation: &Relation, constraint: &elephantry::inspect::Constraint) -> Self {
+    fn new(parent_type: &str, parent_name: &str, constraint: &elephantry::inspect::Constraint) -> Self {
         Self {
-            parent: relation.name.clone(),
+            parent_name: parent_name.to_string(),
+            parent_type: parent_type.to_string(),
             inner: constraint.clone(),
         }
     }
 
     pub fn fullname(&self) -> String {
-        format!("{}.{}", self.parent, self.name)
+        format!("{}.{}", self.parent_name, self.name)
     }
 }
 

@@ -23,19 +23,19 @@ alter table "public.updated_table" alter column "old_default" drop default;
 alter table "public.updated_table" alter column "old_not_null" drop not null;
 comment on column public.updated_table.updated_column is 'updated column';
 alter table "public.updated_table" alter column "updated_column" type int4;
-alter table "updated_table" add constraint "updated_table_new_check_check" CHECK ((char_length(new_check) = 5));
-alter table "updated_table" drop constraint "updated_table_old_check_check";
-alter table "updated_table" drop constraint "updated_table_updated_check_check";
-alter table "updated_table" add constraint "updated_table_updated_check_check" CHECK ((char_length(updated_check) = 2));
+alter table "public.updated_table" add constraint "updated_table_new_check_check" CHECK ((char_length(new_check) = 5));
+alter table "public.updated_table" drop constraint "updated_table_old_check_check";
+alter table "public.updated_table" drop constraint "updated_table_updated_check_check";
+alter table "public.updated_table" add constraint "updated_table_updated_check_check" CHECK ((char_length(updated_check) = 2));
 create type "public.new_enum" as enum('sad', 'ok', 'happy');
 drop type "public.old_enum";
 alter type "public.updated_enum" drop attribute 'happy';
 alter type "public.updated_enum" add value 'neutral' after 'sad';
 create domain "public.new_domain" as text CHECK ((VALUE ~ '^http://'::text));
 drop domain "public.old_domain";
-alter domain "public.updated_domain" drop constraint;
 alter domain "public.updated_domain" set not null;
 alter domain "public.updated_domain" set default ''::text;
+alter domain "public.updated_domain" drop constraint "updated_domain_check";
 create type "public.new_composite" as (
     name text,
     description varchar(255)
