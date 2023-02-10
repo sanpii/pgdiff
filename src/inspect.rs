@@ -203,7 +203,8 @@ impl Domain {
             constraints: BTreeMap::new(),
         };
 
-        d.constraints = domain.constraints
+        d.constraints = domain
+            .constraints
             .iter()
             .map(|x| (x.name.clone(), Constraint::new("domain", &d.fullname(), x)))
             .collect();
@@ -318,7 +319,11 @@ pub struct Constraint {
 }
 
 impl Constraint {
-    fn new(parent_type: &str, parent_name: &str, constraint: &elephantry::inspect::Constraint) -> Self {
+    fn new(
+        parent_type: &str,
+        parent_name: &str,
+        constraint: &elephantry::inspect::Constraint,
+    ) -> Self {
         Self {
             parent_name: parent_name.to_string(),
             parent_type: parent_type.to_string(),
