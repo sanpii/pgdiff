@@ -139,7 +139,7 @@ impl Relation {
             .map(|x| {
                 (
                     format!("{}.{}", relation.fullname(), x.name),
-                    Constraint::new(&relation.ty, &relation.fullname(), x),
+                    Constraint::new(&relation.kind.to_string(), &relation.fullname(), x),
                 )
             })
             .collect();
@@ -154,7 +154,7 @@ impl Relation {
 
 impl PartialEq for Relation {
     fn eq(&self, other: &Self) -> bool {
-        self.inner.ty == other.inner.ty
+        self.inner.kind == other.inner.kind
             && self.inner.name == other.inner.name
             && self.inner.comment == other.inner.comment
             && self.inner.definition == other.inner.definition

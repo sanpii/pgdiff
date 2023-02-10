@@ -57,7 +57,7 @@ impl Diff {
 
     fn schema(old: &crate::inspect::Schema, new: &crate::inspect::Schema) -> SchemaComponents {
         let relation = iter(&old.relations, &new.relations, |old, new| {
-            if old.ty == "table" {
+            if old.kind == elephantry::inspect::Kind::OrdinaryTable {
                 Self::relation(old, new)
             } else {
                 RelationComponents::default()
@@ -243,9 +243,11 @@ diff!(Relation, RelationComponents, crate::inspect::Relation);
 
 impl Relation {
     fn sql_added(&self, new: &crate::inspect::Relation) -> String {
-        match new.ty.as_str() {
-            "table" => self.create_table(new),
-            "materialized view" | "view" => self.create_view(new),
+        use elephantry::inspect::Kind::*;
+
+        match new.kind {
+            OrdinaryTable => self.create_table(new),
+            View | MaterializedView => self.create_view(new),
             _ => String::new(),
         }
     }
@@ -274,14 +276,14 @@ impl Relation {
     fn create_view(&self, new: &crate::inspect::Relation) -> String {
         format!(
             "create {} {} as {}\n",
-            new.ty,
+            new.kind,
             new.fullname(),
             new.definition.as_ref().unwrap()
         )
     }
 
     fn sql_removed(&self, old: &crate::inspect::Relation) -> String {
-        format!("drop {} {};\n", old.ty, old.fullname())
+        format!("drop {} {};\n", old.kind, old.fullname())
     }
 
     fn sql_updated(
@@ -291,7 +293,7 @@ impl Relation {
     ) -> String {
         let mut sql = String::new();
 
-        if old.ty == "view" {
+        if old.kind == elephantry::inspect::Kind::View {
             sql.push_str(&format!(
                 "create or replace view {} as {}\n",
                 old.fullname(),
@@ -300,7 +302,7 @@ impl Relation {
         }
 
         sql.push_str(&comment(
-            &old.ty,
+            &old.kind.to_string(),
             &old.fullname(),
             old.comment.as_deref(),
             new.comment.as_deref(),
