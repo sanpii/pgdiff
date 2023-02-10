@@ -339,8 +339,8 @@ impl Enum {
         for old_element in old_elements {
             if !new_elements.contains(old_element) {
                 sql.push_str(&format!(
-                    "alter type \"{}\" drop attribute '{old_element}';\n",
-                    new.fullname()
+                    "delete from pg_enum where enumlabel = '{old_element}' and enumtypid = ( select oid from pg_type where typname = '{}' );\n",
+                    new.name,
                 ));
             }
         }

@@ -31,7 +31,7 @@ alter table "public.updated_table" drop constraint "updated_table_updated_check_
 alter table "public.updated_table" add constraint "updated_table_updated_check_check" CHECK ((char_length(updated_check) = 2));
 create type "public.new_enum" as enum('sad', 'ok', 'happy');
 drop type "public.old_enum";
-alter type "public.updated_enum" drop attribute 'happy';
+delete from pg_enum where enumlabel = 'happy' and enumtypid = ( select oid from pg_type where typname = 'updated_enum' );
 alter type "public.updated_enum" add value 'neutral' after 'sad';
 create domain "public.new_domain" as text CHECK ((VALUE ~ '^http://'::text));
 drop domain "public.old_domain";
