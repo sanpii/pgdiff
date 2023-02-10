@@ -17,7 +17,9 @@ create table if not exists updated_table(
     new_not_null int not null,
     old_check text,
     new_check text check (char_length(new_check) = 5),
-    updated_check text check(char_length(updated_check) = 2)
+    updated_check text check(char_length(updated_check) = 2),
+    old_unique int,
+    new_unique int unique
 );
 
 comment on column updated_table.new_column is 'new column';

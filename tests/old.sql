@@ -11,7 +11,9 @@ create table if not exists updated_table(
     new_not_null int,
     old_check text check (char_length(old_check) = 5),
     new_check text,
-    updated_check text check(char_length(updated_check) = 1)
+    updated_check text check(char_length(updated_check) = 1),
+    old_unique int unique,
+    new_unique int
 );
 comment on table updated_table is 'need update';
 
