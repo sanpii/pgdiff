@@ -245,7 +245,7 @@ impl Relation {
     fn sql_added(&self, new: &crate::inspect::Relation) -> String {
         match new.ty.as_str() {
             "table" => self.create_table(new),
-            "view" => self.create_view(new),
+            "materialized view" | "view" => self.create_view(new),
             _ => String::new(),
         }
     }
@@ -273,7 +273,8 @@ impl Relation {
 
     fn create_view(&self, new: &crate::inspect::Relation) -> String {
         format!(
-            "create view {} as {}\n",
+            "create {} {} as {}\n",
+            new.ty,
             new.fullname(),
             new.definition.as_ref().unwrap()
         )

@@ -50,3 +50,4 @@ create extension if not exists hstore version '1.8';
 
 create or replace view new_view as select pk from new_table;
 create or replace view updated_view as select pk from new_table;
+create materialized view if not exists new_materialized_view as select 1;

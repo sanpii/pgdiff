@@ -2,12 +2,14 @@ create schema new_schema;
 comment on schema new_schema is 'new schema';
 drop schema old_schema;
 comment on schema public is 'public schema';
+create materialized view public.new_materialized_view as  SELECT 1 AS "?column?";
 create table public.new_table(
     pk int4 primary key
 );
 comment on table public.new_table is 'new table';
 create view public.new_view as  SELECT new_table.pk
    FROM new_table;
+drop materialized view public.old_materialized_view;
 drop table public.old_table;
 drop view public.old_view;
 comment on table public.updated_table is null;
