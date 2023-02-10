@@ -44,7 +44,7 @@ pub struct Diff {
 
 impl Diff {
     pub fn from(old: &crate::inspect::Database, new: &crate::inspect::Database) -> Self {
-        let schema = Self::database(&old, &new);
+        let schema = Self::database(old, new);
 
         Self { schema }
     }
@@ -260,7 +260,7 @@ impl Relation {
             if column.is_primary {
                 sql.push_str(" primary key");
             }
-            sql.push_str(",");
+            sql.push(',');
         }
 
         sql = sql.trim_end_matches(',').to_string();
@@ -337,7 +337,7 @@ impl Enum {
         let new_elements = &new.elements;
 
         for old_element in old_elements {
-            if !new_elements.contains(&old_element) {
+            if !new_elements.contains(old_element) {
                 sql.push_str(&format!(
                     "alter type \"{}\" drop attribute '{old_element}';\n",
                     new.fullname()
@@ -346,7 +346,7 @@ impl Enum {
         }
 
         for (x, new_element) in new_elements.iter().enumerate() {
-            if !old_elements.contains(&new_element) {
+            if !old_elements.contains(new_element) {
                 if let Some(after) = new_elements.get(x - 1) {
                     sql.push_str(&format!(
                         "alter type \"{}\" add value '{new_element}' after '{after}';\n",
@@ -435,7 +435,7 @@ impl Composite {
         }
 
         sql = sql.trim_end_matches(",\n").to_string();
-        sql.push_str(&format!("\n);\n"));
+        sql.push_str("\n);\n");
 
         sql
     }
