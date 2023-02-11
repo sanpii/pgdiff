@@ -7,6 +7,10 @@ create table if not exists new_table(
 );
 comment on table public.new_table is 'new table';
 
+create table if not exists ft (
+    id int primary key
+);
+
 create table if not exists updated_table(
     new_column text,
     len varchar(10),
@@ -19,7 +23,8 @@ create table if not exists updated_table(
     new_check text check (char_length(new_check) = 5),
     updated_check text check(char_length(updated_check) = 2),
     old_unique int,
-    new_unique int unique
+    new_unique int unique,
+    new_foreign int references ft(id)
 );
 
 comment on column updated_table.new_column is 'new column';

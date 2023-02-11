@@ -2,6 +2,10 @@ create schema if not exists old_schema;
 
 create table if not exists old_table();
 
+create table if not exists ft (
+    id int primary key
+);
+
 create table if not exists updated_table(
     old_column text,
     updated_column text,
@@ -13,7 +17,8 @@ create table if not exists updated_table(
     new_check text,
     updated_check text check(char_length(updated_check) = 1),
     old_unique int unique,
-    new_unique int
+    new_unique int,
+    old_foreign int references ft(id)
 );
 comment on table updated_table is 'need update';
 
