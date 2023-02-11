@@ -3,6 +3,11 @@ comment on schema new_schema is 'new schema';
 drop schema old_schema;
 comment on schema public is 'public schema';
 create materialized view public.new_materialized_view as  SELECT 1 AS "?column?";
+create view public.new_recursive_view as  WITH RECURSIVE new_recursive_view(pk) AS (
+         SELECT 1 AS "?column?"
+        )
+ SELECT new_recursive_view.pk
+   FROM new_recursive_view;
 create table public.new_table(
     pk int4 primary key
 );
