@@ -1,0 +1,63 @@
+on: [pull_request, push]
+
+env:
+  CARGO_TERM_COLOR: always
+  DATABASE_URL: postgres://postgres:root@localhost/new
+  DB_NEW: $DATABASE_URL
+  DB_OLD: postgres://postgres:root@localhost/old
+
+jobs:
+  lint_fmt:
+    name: cargo fmt
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check formating
+        run: cargo fmt -- --check
+
+  lint_clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Run clippy
+        run: cargo clippy --all-features -- --deny warnings
+
+  tests:
+    name: Tests
+    strategy:
+      matrix:
+        mode: ["debug", "release"]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install postgreSQL (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt jammy-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev postgresql-15
+          sudo service postgresql start && sleep 3
+          sudo -u postgres psql --command "alter user postgres password 'root';"
+          sudo -u postgres psql --command "create database old;";
+          sudo -u postgres psql --command "create database new;";
+
+      - name: Run tests (debug)
+        if: matrix.mode == 'debug'
+        run: RUST_TEST_THREADS=1 cargo te
+
+      - name: Run tests (release)
+        if: matrix.mode == 'release'
+        run: RUST_TEST_THREADS=1 cargo test --release
