@@ -18,7 +18,10 @@ create table if not exists updated_table(
     updated_check text check(char_length(updated_check) = 1),
     old_unique int unique,
     new_unique int,
-    old_foreign int references ft(id)
+    old_foreign int references ft(id),
+    old_exclude circle,
+    new_exclude circle,
+    exclude using gist (old_exclude with &&)
 );
 comment on table updated_table is 'need update';
 

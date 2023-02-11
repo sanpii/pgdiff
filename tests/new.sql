@@ -24,7 +24,10 @@ create table if not exists updated_table(
     updated_check text check(char_length(updated_check) = 2),
     old_unique int,
     new_unique int unique,
-    new_foreign int references ft(id)
+    new_foreign int references ft(id),
+    old_exclude circle,
+    new_exclude circle,
+    exclude using gist (new_exclude with &&)
 );
 
 comment on column updated_table.new_column is 'new column';
