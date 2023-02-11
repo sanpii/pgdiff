@@ -48,7 +48,7 @@ impl Schema {
             .map(|x| {
                 (
                     format!("{}.{}", schema.name, x.name),
-                    Relation::new(&schema, x, conn).unwrap(),
+                    Relation::new(x, conn).unwrap(),
                 )
             })
             .collect();
@@ -106,7 +106,6 @@ impl PartialEq for Schema {
 pub struct Relation {
     #[deref]
     inner: elephantry::inspect::Relation,
-    parent: Schema,
     pub columns: BTreeMap<String, Column>,
     pub constraints: BTreeMap<String, Constraint>,
     pub indexes: BTreeMap<String, Index>,
@@ -114,23 +113,21 @@ pub struct Relation {
 
 impl Relation {
     fn new(
-        schema: &Schema,
         relation: &elephantry::inspect::Relation,
         conn: &elephantry::Connection,
     ) -> crate::Result<Self> {
         let mut relation = Self {
-            parent: schema.clone(),
             inner: relation.clone(),
             columns: BTreeMap::new(),
             constraints: BTreeMap::new(),
             indexes: BTreeMap::new(),
         };
 
-        relation.columns = elephantry::inspect::relation(conn, &schema.name, &relation.name)?
+        relation.columns = elephantry::inspect::relation(conn, &relation.schema, &relation.name)?
             .iter()
             .map(|x| {
                 (
-                    format!("{}.{}.{}", schema.name, relation.name, x.name),
+                    format!("{}.{}.{}", relation.schema, relation.name, x.name),
                     Column::new(&relation, x),
                 )
             })
@@ -160,7 +157,7 @@ impl Relation {
     }
 
     pub fn fullname(&self) -> String {
-        format!("{}.{}", self.parent.name, self.name)
+        format!("{}.{}", self.schema, self.name)
     }
 }
 
