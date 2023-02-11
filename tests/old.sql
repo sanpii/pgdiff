@@ -17,6 +17,9 @@ create table if not exists updated_table(
 );
 comment on table updated_table is 'need update';
 
+create index if not exists old_index on updated_table(old_column);
+create index if not exists updated_index on updated_table(updated_column);
+
 do $$
 begin
     if not exists (select 1 from pg_type where typname = 'old_enum') then

@@ -25,6 +25,9 @@ create table if not exists updated_table(
 comment on column updated_table.new_column is 'new column';
 comment on column updated_table.updated_column is 'updated column';
 
+create index if not exists new_index on updated_table(new_column) where new_column is null;
+create index if not exists updated_index on updated_table(updated_column) where updated_column > 10;
+
 do $$
 begin
     if not exists (select 1 from pg_type where typname = 'new_enum') then

@@ -85,8 +85,13 @@ impl Diff {
     ) -> RelationComponents {
         let column = iter(&old.columns, &new.columns, |_, _| {});
         let constraint = iter(&old.constraints, &new.constraints, |_, _| {});
+        let index = iter(&old.indexes, &new.indexes, |_, _| {});
 
-        RelationComponents { column, constraint }
+        RelationComponents {
+            column,
+            constraint,
+            index,
+        }
     }
 
     fn constraint(old: &crate::inspect::Domain, new: &crate::inspect::Domain) -> Constraint {
@@ -228,12 +233,14 @@ impl Sql for &SchemaComponents {
 struct RelationComponents {
     column: Column,
     constraint: Constraint,
+    index: Index,
 }
 
 impl Sql for &RelationComponents {
     fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result {
         self.column.sql(output)?;
         self.constraint.sql(output)?;
+        self.index.sql(output)?;
 
         Ok(())
     }
@@ -562,6 +569,10 @@ diff!(Constraint, (), crate::inspect::Constraint);
 
 impl Constraint {
     fn sql_added(&self, new: &crate::inspect::Constraint) -> String {
+        if new.ty == elephantry::inspect::constraint::Type::Unique {
+            return String::new();
+        }
+
         format!(
             "alter {} \"{}\" add constraint \"{}\" {};\n",
             new.parent_type, new.parent_name, new.name, new.definition
@@ -569,6 +580,10 @@ impl Constraint {
     }
 
     fn sql_removed(&self, old: &crate::inspect::Constraint) -> String {
+        if old.ty == elephantry::inspect::constraint::Type::Unique {
+            return String::new();
+        }
+
         format!(
             "alter {} \"{}\" drop constraint \"{}\";\n",
             old.parent_type, old.parent_name, old.name
@@ -580,6 +595,31 @@ impl Constraint {
         old: &crate::inspect::Constraint,
         new: &crate::inspect::Constraint,
     ) -> String {
+        if old.ty == elephantry::inspect::constraint::Type::Unique {
+            return String::new();
+        }
+
+        let mut sql = String::new();
+
+        sql.push_str(&self.sql_removed(old));
+        sql.push_str(&self.sql_added(new));
+
+        sql
+    }
+}
+
+diff!(Index, (), crate::inspect::Index);
+
+impl Index {
+    fn sql_added(&self, new: &crate::inspect::Index) -> String {
+        format!("{};\n", new.definition)
+    }
+
+    fn sql_removed(&self, old: &crate::inspect::Index) -> String {
+        format!("drop index {};\n", old.name)
+    }
+
+    fn sql_updated(&self, old: &crate::inspect::Index, new: &crate::inspect::Index) -> String {
         let mut sql = String::new();
 
         sql.push_str(&self.sql_removed(old));

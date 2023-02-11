@@ -109,6 +109,7 @@ pub struct Relation {
     parent: Schema,
     pub columns: BTreeMap<String, Column>,
     pub constraints: BTreeMap<String, Constraint>,
+    pub indexes: BTreeMap<String, Index>,
 }
 
 impl Relation {
@@ -122,6 +123,7 @@ impl Relation {
             inner: relation.clone(),
             columns: BTreeMap::new(),
             constraints: BTreeMap::new(),
+            indexes: BTreeMap::new(),
         };
 
         relation.columns = elephantry::inspect::relation(conn, &schema.name, &relation.name)?
@@ -140,6 +142,16 @@ impl Relation {
                 (
                     format!("{}.{}", relation.fullname(), x.name),
                     Constraint::new(&relation.kind.to_string(), &relation.fullname(), x),
+                )
+            })
+            .collect();
+
+        relation.indexes = elephantry::inspect::indexes(conn, &relation.inner)?
+            .iter()
+            .map(|x| {
+                (
+                    format!("{}.{}", relation.fullname(), x.name),
+                    Index::new(&relation, x),
                 )
             })
             .collect();
@@ -339,5 +351,25 @@ impl Constraint {
 impl PartialEq for Constraint {
     fn eq(&self, other: &Self) -> bool {
         self.inner.name == other.inner.name && self.inner.definition == other.inner.definition
+    }
+}
+
+#[derive(Clone, Debug, Deref, Eq, PartialEq)]
+pub struct Index {
+    #[deref]
+    inner: elephantry::inspect::Index,
+    pub parent: Relation,
+}
+
+impl Index {
+    fn new(relation: &Relation, index: &elephantry::inspect::Index) -> Self {
+        Self {
+            parent: relation.clone(),
+            inner: index.clone(),
+        }
+    }
+
+    pub fn fullname(&self) -> String {
+        self.name.clone()
     }
 }
