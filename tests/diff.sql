@@ -7,6 +7,8 @@ create table public.new_table(
     pk int4 primary key
 );
 comment on table public.new_table is 'new table';
+create unlogged table public.new_unlogged_table(
+);
 create view public.new_view as  SELECT new_table.pk
    FROM new_table;
 drop materialized view public.old_materialized_view;

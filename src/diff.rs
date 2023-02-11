@@ -260,7 +260,17 @@ impl Relation {
     }
 
     fn create_table(&self, new: &crate::inspect::Relation) -> String {
-        let mut sql = format!("create table {}(", new.fullname());
+        use elephantry::inspect::Persistence;
+
+        let mut sql = String::from("create");
+
+        match new.persistence {
+            Persistence::Permanent => (),
+            Persistence::Unlogged => sql.push_str(" unlogged"),
+            Persistence::Temporary => sql.push_str(" temporary"),
+        }
+
+        sql.push_str(&format!(" table {}(", new.fullname()));
 
         for column in new.columns.values() {
             sql.push_str(&format!("\n    {} {}", column.name, column.ty));

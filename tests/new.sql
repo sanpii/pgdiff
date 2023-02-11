@@ -7,6 +7,8 @@ create table if not exists new_table(
 );
 comment on table public.new_table is 'new table';
 
+create unlogged table if not exists new_unlogged_table();
+
 create table if not exists ft (
     id int primary key
 );
