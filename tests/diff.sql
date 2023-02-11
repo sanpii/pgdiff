@@ -52,7 +52,7 @@ drop index updated_index;
 CREATE INDEX updated_index ON public.updated_table USING btree (updated_column) WHERE (updated_column > 10);
 create type "public.new_enum" as enum('sad', 'ok', 'happy');
 drop type "public.old_enum";
-delete from pg_enum where enumlabel = 'happy' and enumtypid = ( select oid from pg_type where typname = 'updated_enum' );
+select * from pg_enum e join pg_type t on e.enumtypid = t.oid and t.typname = 'updated_enum' join pg_namespace n on t.typnamespace = n.oid and n.nspname = 'public' where enumlabel = 'happy';
 alter type "public.updated_enum" add value 'neutral' after 'sad';
 create domain "public.new_domain" as text CHECK ((VALUE ~ '^http://'::text));
 drop domain "public.old_domain";

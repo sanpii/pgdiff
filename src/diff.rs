@@ -356,8 +356,9 @@ impl Enum {
         for old_element in old_elements {
             if !new_elements.contains(old_element) {
                 sql.push_str(&format!(
-                    "delete from pg_enum where enumlabel = '{old_element}' and enumtypid = ( select oid from pg_type where typname = '{}' );\n",
+                    "select * from pg_enum e join pg_type t on e.enumtypid = t.oid and t.typname = '{}' join pg_namespace n on t.typnamespace = n.oid and n.nspname = '{}' where enumlabel = '{old_element}';\n",
                     new.name,
+                    new.parent.name,
                 ));
             }
         }
