@@ -3,6 +3,7 @@ name = "pgdiff"
 version = "0.1.0"
 edition = "2021"
 description = "Postgresql schema diff tool"
+repository = "https://github.com/sanpii/pgdiff"
 license = "MIT"
 
 [dependencies]
