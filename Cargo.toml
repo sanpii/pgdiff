@@ -2,6 +2,8 @@
 name = "pgdiff"
 version = "0.1.0"
 edition = "2021"
+description = "Postgresql schema diff tool"
+license = "MIT"
 
 [dependencies]
 derive-deref-rs = "0.1"
