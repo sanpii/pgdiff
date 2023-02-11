@@ -11,8 +11,8 @@ impl Database {
         let conn = elephantry::Connection::new(dsn)?;
         let schemas = elephantry::inspect::database(&conn)?
             .iter()
-            .map(|x| (x.name.clone(), Schema::new(x, &conn).unwrap()))
-            .collect::<BTreeMap<String, Schema>>();
+            .map(|x| Ok((x.name.clone(), Schema::new(x, &conn)?)))
+            .collect::<crate::Result<BTreeMap<String, Schema>>>()?;
 
         Ok(Self { schemas })
     }
@@ -46,12 +46,12 @@ impl Schema {
         schema.relations = elephantry::inspect::schema(conn, &schema.name)?
             .iter()
             .map(|x| {
-                (
+                Ok((
                     format!("{}.{}", schema.name, x.name),
-                    Relation::new(x, conn).unwrap(),
-                )
+                    Relation::new(x, conn)?,
+                ))
             })
-            .collect();
+            .collect::<crate::Result<_>>()?;
 
         schema.enums = elephantry::inspect::enums(conn, &schema.name)?
             .iter()

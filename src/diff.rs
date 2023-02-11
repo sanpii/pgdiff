@@ -281,12 +281,11 @@ impl Relation {
     }
 
     fn create_view(&self, new: &crate::inspect::Relation) -> String {
-        format!(
-            "create {} {} as {}\n",
-            new.kind,
-            new.fullname(),
-            new.definition.as_ref().unwrap()
-        )
+        if let Some(definition) = &new.definition {
+            format!("create {} {} as {definition}\n", new.kind, new.fullname(),)
+        } else {
+            String::new()
+        }
     }
 
     fn sql_removed(&self, old: &crate::inspect::Relation) -> String {
@@ -301,11 +300,12 @@ impl Relation {
         let mut sql = String::new();
 
         if old.kind == elephantry::inspect::Kind::View {
-            sql.push_str(&format!(
-                "create or replace view {} as {}\n",
-                old.fullname(),
-                new.definition.as_ref().unwrap()
-            ));
+            if let Some(definition) = &new.definition {
+                sql.push_str(&format!(
+                    "create or replace view {} as {definition}\n",
+                    old.fullname(),
+                ));
+            }
         }
 
         sql.push_str(&comment(
