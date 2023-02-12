@@ -18,7 +18,7 @@ fn diff(args: &Args) -> pgdiff::Result {
 
     let diff = pgdiff::diff::Diff::from(&old, &new);
 
-    print!("{}", diff.sql()?);
+    print!("{}", diff.sql());
 
     Ok(())
 }

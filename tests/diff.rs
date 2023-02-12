@@ -41,7 +41,7 @@ fn load_diff() -> Result<String, Box<dyn std::error::Error>> {
 
     let pgdiff = pgdiff::diff::Diff::from(&old, &new);
 
-    let diff = pgdiff.sql()?;
+    let diff = pgdiff.sql();
 
     Ok(diff)
 }

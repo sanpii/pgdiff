@@ -98,16 +98,16 @@ impl Diff {
         iter(&old.constraints, &new.constraints, |_, _| {})
     }
 
-    pub fn sql(&self) -> crate::Result<String> {
+    pub fn sql(&self) -> String {
         let mut s = String::new();
-        self.schema.sql(&mut s)?;
+        self.schema.sql(&mut s);
 
-        Ok(s)
+        s
     }
 }
 
 trait Sql {
-    fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result;
+    fn sql(&self, output: &mut dyn std::fmt::Write);
 }
 
 macro_rules! diff {
@@ -141,24 +141,22 @@ macro_rules! diff {
         }
 
         impl Sql for $ty {
-            fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result {
+            fn sql(&self, output: &mut dyn std::fmt::Write) {
                 for new in &self.added {
-                    write!(output, "{}", self.sql_added(new))?;
+                    write!(output, "{}", self.sql_added(new)).ok();
                 }
 
                 for old in &self.removed {
-                    write!(output, "{}", self.sql_removed(old))?;
+                    write!(output, "{}", self.sql_removed(old)).ok();
                 }
 
                 for (old, new) in &self.updated {
-                    write!(output, "{}", self.sql_updated(old, new))?;
+                    write!(output, "{}", self.sql_updated(old, new)).ok();
                 }
 
                 for child in &self.children {
-                    child.sql(output)?;
+                    child.sql(output);
                 }
-
-                Ok(())
             }
         }
     };
@@ -167,8 +165,7 @@ macro_rules! diff {
 impl Comparable for () {}
 
 impl Sql for () {
-    fn sql(&self, _: &mut dyn std::fmt::Write) -> crate::Result {
-        Ok(())
+    fn sql(&self, _: &mut dyn std::fmt::Write) {
     }
 }
 
@@ -218,14 +215,12 @@ struct SchemaComponents {
 }
 
 impl Sql for &SchemaComponents {
-    fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result {
-        self.relation.sql(output)?;
-        self.r#enum.sql(output)?;
-        self.domain.sql(output)?;
-        self.composite.sql(output)?;
-        self.extension.sql(output)?;
-
-        Ok(())
+    fn sql(&self, output: &mut dyn std::fmt::Write) {
+        self.relation.sql(output);
+        self.r#enum.sql(output);
+        self.domain.sql(output);
+        self.composite.sql(output);
+        self.extension.sql(output);
     }
 }
 
@@ -237,12 +232,10 @@ struct RelationComponents {
 }
 
 impl Sql for &RelationComponents {
-    fn sql(&self, output: &mut dyn std::fmt::Write) -> crate::Result {
-        self.column.sql(output)?;
-        self.constraint.sql(output)?;
-        self.index.sql(output)?;
-
-        Ok(())
+    fn sql(&self, output: &mut dyn std::fmt::Write) {
+        self.column.sql(output);
+        self.constraint.sql(output);
+        self.index.sql(output);
     }
 }
 
