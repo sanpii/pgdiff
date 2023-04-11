@@ -165,8 +165,7 @@ macro_rules! diff {
 impl Comparable for () {}
 
 impl Sql for () {
-    fn sql(&self, _: &mut dyn std::fmt::Write) {
-    }
+    fn sql(&self, _: &mut dyn std::fmt::Write) {}
 }
 
 impl Stack<(), ()> for () {
