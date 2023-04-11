@@ -56,7 +56,7 @@ jobs:
 
       - name: Run tests (debug)
         if: matrix.mode == 'debug'
-        run: RUST_TEST_THREADS=1 cargo te
+        run: RUST_TEST_THREADS=1 cargo test
 
       - name: Run tests (release)
         if: matrix.mode == 'release'
