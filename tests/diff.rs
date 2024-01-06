@@ -35,9 +35,19 @@ fn syntax() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[derive(envir::Deserialize)]
+struct Config {
+    old_url: String,
+    new_url: String,
+}
+
 fn load_diff() -> Result<String, Box<dyn std::error::Error>> {
-    let old = db("OLD_URL", include_str!("old.sql"))?;
-    let new = db("NEW_URL", include_str!("new.sql"))?;
+    use envir::Deserialize;
+
+    envir::dotenv();
+    let config = Config::from_env()?;
+    let old = db(&config.old_url, include_str!("old.sql"))?;
+    let new = db(&config.new_url, include_str!("new.sql"))?;
 
     let pgdiff = pgdiff::diff::Diff::from(&old, &new);
 
@@ -46,13 +56,11 @@ fn load_diff() -> Result<String, Box<dyn std::error::Error>> {
     Ok(diff)
 }
 
-fn db(env: &str, sql: &str) -> Result<pgdiff::inspect::Database, Box<dyn std::error::Error>> {
-    let url = std::env::var(env).unwrap();
+fn db(url: &str, sql: &str) -> Result<pgdiff::inspect::Database, Box<dyn std::error::Error>> {
     let db = elephantry::Connection::new(&url)?;
 
     db.execute(&sql)?;
 
-    let url = std::env::var(env).unwrap();
     let diff = pgdiff::inspect::Database::new(&url)?;
 
     Ok(diff)
