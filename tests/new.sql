@@ -67,3 +67,15 @@ create or replace view new_view as select pk from new_table;
 create or replace recursive view new_recursive_view (pk) as select 1;
 create or replace view updated_view as select pk from new_table;
 create materialized view if not exists new_materialized_view as select 1;
+
+create or replace function new_function()
+    returns trigger
+    language plpgsql
+as $$
+begin
+    return new;
+end;
+$$;
+
+create or replace trigger new_trigger after update on updated_table for each row execute function new_function();
+create or replace trigger updated_trigger before insert on updated_table for each row execute function new_function();

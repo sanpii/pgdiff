@@ -72,3 +72,6 @@ create type "public.updated_composite" as (
 create extension "xml2";
 drop extension "uuid-ossp";
 alter extension "hstore" update to '1.8';
+create or replace trigger "public.new_trigger" AFTER UPDATE on "public.updated_table" for each ROW EXECUTE FUNCTION new_function();
+drop trigger "public.old_trigger";
+create or replace trigger "public.updated_trigger" BEFORE INSERT on "public.updated_table" for each ROW EXECUTE FUNCTION new_function();

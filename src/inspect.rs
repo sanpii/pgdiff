@@ -27,6 +27,7 @@ pub struct Schema {
     pub domains: BTreeMap<String, Domain>,
     pub composites: BTreeMap<String, Composite>,
     pub extensions: BTreeMap<String, Extension>,
+    pub triggers: BTreeMap<String, Trigger>,
 }
 
 impl Schema {
@@ -41,6 +42,7 @@ impl Schema {
             domains: BTreeMap::new(),
             composites: BTreeMap::new(),
             extensions: BTreeMap::new(),
+            triggers: BTreeMap::new(),
         };
 
         schema.relations = elephantry::inspect::schema(conn, &schema.name)?
@@ -84,6 +86,16 @@ impl Schema {
                 (
                     format!("{}.{}", schema.name, x.name),
                     Extension::new(&schema, x),
+                )
+            })
+            .collect();
+
+        schema.triggers = elephantry::inspect::triggers(conn, &schema.name)?
+            .iter()
+            .map(|x| {
+                (
+                    format!("{}.{}", schema.name, x.name),
+                    Trigger::new(&schema, x),
                 )
             })
             .collect();
@@ -316,6 +328,26 @@ impl PartialEq for Extension {
         self.inner.name == other.inner.name
             && self.inner.version == other.inner.version
             && self.inner.description == other.inner.description
+    }
+}
+
+#[derive(Clone, Debug, Deref, Eq, PartialEq)]
+pub struct Trigger {
+    #[deref]
+    inner: elephantry::inspect::Trigger,
+    pub parent: Schema,
+}
+
+impl Trigger {
+    fn new(schema: &Schema, trigger: &elephantry::inspect::Trigger) -> Self {
+        Self {
+            parent: schema.clone(),
+            inner: trigger.clone(),
+        }
+    }
+
+    pub fn fullname(&self) -> String {
+        format!("{}.{}", self.parent.name, self.name)
     }
 }
 

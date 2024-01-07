@@ -69,6 +69,7 @@ impl Diff {
         });
         let composite = iter(&old.composites, &new.composites, |_, _| {});
         let extension = iter(&old.extensions, &new.extensions, |_, _| {});
+        let trigger = iter(&old.triggers, &new.triggers, |_, _| {});
 
         SchemaComponents {
             relation,
@@ -76,6 +77,7 @@ impl Diff {
             domain,
             composite,
             extension,
+            trigger,
         }
     }
 
@@ -211,6 +213,7 @@ struct SchemaComponents {
     domain: Domain,
     composite: Composite,
     extension: Extension,
+    trigger: Trigger,
 }
 
 impl Sql for &SchemaComponents {
@@ -220,6 +223,7 @@ impl Sql for &SchemaComponents {
         self.domain.sql(output);
         self.composite.sql(output);
         self.extension.sql(output);
+        self.trigger.sql(output);
     }
 }
 
@@ -565,6 +569,30 @@ impl Extension {
             "alter extension \"{}\" update to '{}';\n",
             old.name, new.version
         )
+    }
+}
+
+diff!(Trigger, (), crate::inspect::Trigger);
+
+impl Trigger {
+    fn sql_added(&self, new: &crate::inspect::Trigger) -> String {
+        format!(
+            "create or replace trigger \"{}\" {} {} on \"{}\" for each {} {};\n",
+            new.fullname(),
+            new.timing,
+            new.event,
+            new.table,
+            new.orientation,
+            new.action,
+        )
+    }
+
+    fn sql_removed(&self, old: &crate::inspect::Trigger) -> String {
+        format!("drop trigger \"{}\";\n", old.fullname())
+    }
+
+    fn sql_updated(&self, _: &crate::inspect::Trigger, new: &crate::inspect::Trigger) -> String {
+        self.sql_added(new)
     }
 }
 
