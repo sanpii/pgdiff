@@ -72,6 +72,24 @@ create type "public"."updated_composite" as (
 create extension "xml2";
 drop extension "uuid-ossp";
 alter extension "hstore" update to '1.8';
+CREATE OR REPLACE FUNCTION public.new_function()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+begin
+    return new;
+end;
+$function$;
+drop function "public"."old_function";
+drop function "public"."updated_function";
+CREATE OR REPLACE FUNCTION public.updated_function()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+begin
+    return old;
+end;
+$function$;
 create or replace trigger "new_trigger" AFTER UPDATE on "public"."updated_table" for each ROW EXECUTE FUNCTION new_function();
 drop trigger "old_trigger" on "public"."updated_table";
 create or replace trigger "updated_trigger" BEFORE INSERT on "public"."updated_table" for each ROW EXECUTE FUNCTION new_function();

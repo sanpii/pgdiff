@@ -76,6 +76,14 @@ begin
     return new;
 end;
 $$;
+create or replace function updated_function()
+    returns trigger
+    language plpgsql
+as $$
+begin
+    return old;
+end;
+$$;
 
 create or replace trigger new_trigger after update on updated_table for each row execute function new_function();
 create or replace trigger updated_trigger before insert on updated_table for each row execute function new_function();

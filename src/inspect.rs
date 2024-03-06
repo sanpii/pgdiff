@@ -1,7 +1,7 @@
 use derive_deref_rs::Deref;
 use std::collections::BTreeMap;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Database {
     pub schemas: BTreeMap<String, Schema>,
 }
@@ -27,6 +27,7 @@ pub struct Schema {
     pub domains: BTreeMap<String, Domain>,
     pub composites: BTreeMap<String, Composite>,
     pub extensions: BTreeMap<String, Extension>,
+    pub functions: BTreeMap<String, Function>,
     pub triggers: BTreeMap<String, Trigger>,
 }
 
@@ -42,6 +43,7 @@ impl Schema {
             domains: BTreeMap::new(),
             composites: BTreeMap::new(),
             extensions: BTreeMap::new(),
+            functions: BTreeMap::new(),
             triggers: BTreeMap::new(),
         };
 
@@ -86,6 +88,16 @@ impl Schema {
                 (
                     format!("{}.{}", schema.name, x.name),
                     Extension::new(&schema, x),
+                )
+            })
+            .collect();
+
+        schema.functions = elephantry::inspect::functions(conn, &schema.name)?
+            .iter()
+            .map(|x| {
+                (
+                    format!("{}.{}", schema.name, x.name),
+                    Function::new(&schema, x),
                 )
             })
             .collect();
@@ -328,6 +340,36 @@ impl PartialEq for Extension {
         self.inner.name == other.inner.name
             && self.inner.version == other.inner.version
             && self.inner.description == other.inner.description
+    }
+}
+
+#[derive(Clone, Debug, Deref, Eq)]
+pub struct Function {
+    #[deref]
+    pub inner: elephantry::inspect::Function,
+    pub parent: Schema,
+}
+
+impl Function {
+    fn new(schema: &Schema, function: &elephantry::inspect::Function) -> Self {
+        Self {
+            parent: schema.clone(),
+            inner: function.clone(),
+        }
+    }
+
+    pub fn fullname(&self) -> String {
+        format!("\"{}\".\"{}\"", self.parent.name, self.name)
+    }
+}
+
+impl PartialEq for Function {
+    fn eq(&self, other: &Self) -> bool {
+        self.inner.name == other.inner.name
+            && self.inner.language == other.inner.language
+            && self.inner.definition == other.inner.definition
+            && self.inner.arguments == other.inner.arguments
+            && self.inner.return_type == other.inner.return_type
     }
 }
 
