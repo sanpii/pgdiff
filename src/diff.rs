@@ -269,7 +269,7 @@ impl Relation {
         sql.push_str(&format!(" table {}(", new.fullname()));
 
         for column in new.columns.values() {
-            sql.push_str(&format!("\n    {} {}", column.name, column.ty));
+            sql.push_str(&format!("\n    {} {}", column.name, column.ty()));
             if column.is_primary {
                 sql.push_str(" primary key");
             }
@@ -445,7 +445,7 @@ impl Composite {
         sql.push_str(&format!("create type \"{}\" as (\n", new.fullname()));
 
         for field in &new.fields {
-            sql.push_str(&format!("    {} {},\n", field.name, field.ty));
+            sql.push_str(&format!("    {} {},\n", field.name, field.ty()));
         }
 
         sql = sql.trim_end_matches(",\n").to_string();
@@ -480,7 +480,7 @@ impl Column {
             "alter table \"{}\" add column \"{}\" {};\n",
             new.parent.fullname(),
             new.name,
-            new.ty
+            new.ty()
         );
 
         let comment = comment("column", &new.fullname(), None, new.comment.as_deref());
@@ -536,12 +536,12 @@ impl Column {
             }
         }
 
-        if old.ty != new.ty {
+        if old.ty() != new.ty() {
             sql.push_str(&format!(
                 "alter table \"{}\" alter column \"{}\" type {};\n",
                 old.parent.fullname(),
                 old.name,
-                new.ty
+                new.ty()
             ));
         }
 

@@ -296,7 +296,7 @@ impl PartialEq for Column {
     fn eq(&self, other: &Self) -> bool {
         self.inner.is_primary == other.inner.is_primary
             && self.inner.name == other.inner.name
-            && self.inner.ty == other.inner.ty
+            && self.inner.ty() == other.inner.ty()
             && self.inner.default == other.inner.default
             && self.inner.is_notnull == other.inner.is_notnull
             && self.inner.comment == other.inner.comment
