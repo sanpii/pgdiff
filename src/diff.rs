@@ -292,7 +292,7 @@ impl Relation {
 
     fn create_view(&self, new: &crate::inspect::Relation) -> String {
         if let Some(definition) = &new.definition {
-            format!("create {} {} as {definition}\n", new.kind, new.fullname(),)
+            format!("create {} {} as {definition}\n", new.kind, new.fullname())
         } else {
             String::new()
         }
@@ -412,15 +412,9 @@ impl Domain {
 
         if old.is_notnull != new.is_notnull {
             if new.is_notnull {
-                sql.push_str(&format!(
-                    "alter domain {} set not null;\n",
-                    new.fullname()
-                ));
+                sql.push_str(&format!("alter domain {} set not null;\n", new.fullname()));
             } else {
-                sql.push_str(&format!(
-                    "alter domain {} drop not null;\n",
-                    new.fullname()
-                ));
+                sql.push_str(&format!("alter domain {} drop not null;\n", new.fullname()));
             }
         }
 
@@ -430,10 +424,9 @@ impl Domain {
                 "alter domain {} set default {default};\n",
                 new.fullname()
             )),
-            (Some(_), None) => sql.push_str(&format!(
-                "alter domain {} drop default;\n",
-                new.fullname()
-            )),
+            (Some(_), None) => {
+                sql.push_str(&format!("alter domain {} drop default;\n", new.fullname()))
+            }
         }
 
         sql
@@ -618,7 +611,12 @@ impl Trigger {
     }
 
     fn sql_removed(&self, old: &crate::inspect::Trigger) -> String {
-        format!("drop trigger \"{}\" on \"{}\".\"{}\";\n", old.name, old.parent.fullname(), old.table)
+        format!(
+            "drop trigger \"{}\" on \"{}\".\"{}\";\n",
+            old.name,
+            old.parent.fullname(),
+            old.table
+        )
     }
 
     fn sql_updated(&self, _: &crate::inspect::Trigger, new: &crate::inspect::Trigger) -> String {
