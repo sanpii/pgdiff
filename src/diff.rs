@@ -336,11 +336,11 @@ impl Enum {
             .collect::<Vec<_>>()
             .join(", ");
 
-        format!("create type \"{}\" as enum({elements});\n", new.fullname())
+        format!("create type {} as enum({elements});\n", new.fullname())
     }
 
     fn sql_removed(&self, old: &crate::inspect::Enum) -> String {
-        format!("drop type \"{}\";\n", old.fullname())
+        format!("drop type {};\n", old.fullname())
     }
 
     fn sql_updated(&self, old: &crate::inspect::Enum, new: &crate::inspect::Enum) -> String {
@@ -363,17 +363,17 @@ impl Enum {
             if !old_elements.contains(new_element) {
                 if let Some(after) = new_elements.get(x - 1) {
                     sql.push_str(&format!(
-                        "alter type \"{}\" add value '{new_element}' after '{after}';\n",
+                        "alter type {} add value '{new_element}' after '{after}';\n",
                         new.fullname()
                     ));
                 } else if let Some(before) = new_elements.get(x + 1) {
                     sql.push_str(&format!(
-                        "alter type \"{}\" add value '{new_element}' before '{before}';\n",
+                        "alter type {} add value '{new_element}' before '{before}';\n",
                         new.fullname()
                     ));
                 } else {
                     sql.push_str(&format!(
-                        "alter type \"{}\" add value '{new_element}';\n",
+                        "alter type {} add value '{new_element}';\n",
                         new.fullname()
                     ));
                 }
@@ -388,7 +388,7 @@ diff!(Domain, Constraint, crate::inspect::Domain);
 
 impl Domain {
     fn sql_added(&self, new: &crate::inspect::Domain) -> String {
-        let mut sql = format!("create domain \"{}\" as {}", new.fullname(), new.ty);
+        let mut sql = format!("create domain {} as {}", new.fullname(), new.ty);
 
         for constraint in new.constraints.values() {
             sql.push_str(&format!(" {}", constraint.definition));
@@ -400,7 +400,7 @@ impl Domain {
     }
 
     fn sql_removed(&self, old: &crate::inspect::Domain) -> String {
-        format!("drop domain \"{}\";\n", old.fullname())
+        format!("drop domain {};\n", old.fullname())
     }
 
     fn sql_updated(&self, old: &crate::inspect::Domain, new: &crate::inspect::Domain) -> String {
@@ -409,12 +409,12 @@ impl Domain {
         if old.is_notnull != new.is_notnull {
             if new.is_notnull {
                 sql.push_str(&format!(
-                    "alter domain \"{}\" set not null;\n",
+                    "alter domain {} set not null;\n",
                     new.fullname()
                 ));
             } else {
                 sql.push_str(&format!(
-                    "alter domain \"{}\" drop not null;\n",
+                    "alter domain {} drop not null;\n",
                     new.fullname()
                 ));
             }
@@ -423,11 +423,11 @@ impl Domain {
         match (&old.default, &new.default) {
             (None, None) => (),
             (_, Some(default)) => sql.push_str(&format!(
-                "alter domain \"{}\" set default {default};\n",
+                "alter domain {} set default {default};\n",
                 new.fullname()
             )),
             (Some(_), None) => sql.push_str(&format!(
-                "alter domain \"{}\" drop default;\n",
+                "alter domain {} drop default;\n",
                 new.fullname()
             )),
         }
@@ -442,7 +442,7 @@ impl Composite {
     fn sql_added(&self, new: &crate::inspect::Composite) -> String {
         let mut sql = String::new();
 
-        sql.push_str(&format!("create type \"{}\" as (\n", new.fullname()));
+        sql.push_str(&format!("create type {} as (\n", new.fullname()));
 
         for field in &new.fields {
             sql.push_str(&format!("    {} {},\n", field.name, field.ty()));
@@ -455,7 +455,7 @@ impl Composite {
     }
 
     fn sql_removed(&self, old: &crate::inspect::Composite) -> String {
-        format!("drop type \"{}\";\n", old.fullname())
+        format!("drop type {};\n", old.fullname())
     }
 
     fn sql_updated(
@@ -477,7 +477,7 @@ diff!(Column, (), crate::inspect::Column);
 impl Column {
     fn sql_added(&self, new: &crate::inspect::Column) -> String {
         let mut sql = format!(
-            "alter table \"{}\" add column \"{}\" {};\n",
+            "alter table {} add column \"{}\" {};\n",
             new.parent.fullname(),
             new.name,
             new.ty()
@@ -491,7 +491,7 @@ impl Column {
 
     fn sql_removed(&self, old: &crate::inspect::Column) -> String {
         format!(
-            "alter table \"{}\" drop column \"{}\";\n",
+            "alter table {} drop column \"{}\";\n",
             old.parent.fullname(),
             old.name
         )
@@ -500,12 +500,12 @@ impl Column {
     fn sql_updated(&self, old: &crate::inspect::Column, new: &crate::inspect::Column) -> String {
         let mut sql = match (&old.default, &new.default) {
             (_, Some(default)) => format!(
-                "alter table \"{}\" alter column \"{}\" set default '{default}';\n",
+                "alter table {} alter column \"{}\" set default '{default}';\n",
                 old.parent.fullname(),
                 old.name,
             ),
             (Some(_), None) => format!(
-                "alter table \"{}\" alter column \"{}\" drop default;\n",
+                "alter table {} alter column \"{}\" drop default;\n",
                 old.parent.fullname(),
                 old.name
             ),
@@ -523,13 +523,13 @@ impl Column {
         if old.is_notnull != new.is_notnull {
             if new.is_notnull {
                 sql.push_str(&format!(
-                    "alter table \"{}\" alter column \"{}\" set not null;\n",
+                    "alter table {} alter column \"{}\" set not null;\n",
                     old.parent.fullname(),
                     old.name
                 ));
             } else {
                 sql.push_str(&format!(
-                    "alter table \"{}\" alter column \"{}\" drop not null;\n",
+                    "alter table {} alter column \"{}\" drop not null;\n",
                     old.parent.fullname(),
                     old.name
                 ));
@@ -538,7 +538,7 @@ impl Column {
 
         if old.ty() != new.ty() {
             sql.push_str(&format!(
-                "alter table \"{}\" alter column \"{}\" type {};\n",
+                "alter table {} alter column \"{}\" type {};\n",
                 old.parent.fullname(),
                 old.name,
                 new.ty()
@@ -577,10 +577,11 @@ diff!(Trigger, (), crate::inspect::Trigger);
 impl Trigger {
     fn sql_added(&self, new: &crate::inspect::Trigger) -> String {
         format!(
-            "create or replace trigger \"{}\" {} {} on \"{}\" for each {} {};\n",
-            new.fullname(),
+            "create or replace trigger \"{}\" {} {} on \"{}\".\"{}\" for each {} {};\n",
+            new.name,
             new.timing,
             new.event,
+            new.parent.fullname(),
             new.table,
             new.orientation,
             new.action,
@@ -588,7 +589,7 @@ impl Trigger {
     }
 
     fn sql_removed(&self, old: &crate::inspect::Trigger) -> String {
-        format!("drop trigger \"{}\";\n", old.fullname())
+        format!("drop trigger \"{}\" on \"{}\".\"{}\";\n", old.name, old.parent.fullname(), old.table)
     }
 
     fn sql_updated(&self, _: &crate::inspect::Trigger, new: &crate::inspect::Trigger) -> String {
@@ -605,7 +606,7 @@ impl Constraint {
         }
 
         format!(
-            "alter {} \"{}\" add constraint \"{}\" {};\n",
+            "alter {} {} add constraint \"{}\" {};\n",
             new.parent_type, new.parent_name, new.name, new.definition
         )
     }
@@ -616,7 +617,7 @@ impl Constraint {
         }
 
         format!(
-            "alter {} \"{}\" drop constraint \"{}\";\n",
+            "alter {} {} drop constraint \"{}\";\n",
             old.parent_type, old.parent_name, old.name
         )
     }

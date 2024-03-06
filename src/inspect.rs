@@ -169,7 +169,7 @@ impl Relation {
     }
 
     pub fn fullname(&self) -> String {
-        format!("{}.{}", self.schema, self.name)
+        format!("\"{}\".\"{}\"", self.schema, self.name)
     }
 }
 
@@ -198,7 +198,7 @@ impl Enum {
     }
 
     pub fn fullname(&self) -> String {
-        format!("{}.{}", self.parent.name, self.name)
+        format!("\"{}\".\"{}\"", self.parent.name, self.name)
     }
 }
 
@@ -234,7 +234,7 @@ impl Domain {
     }
 
     pub fn fullname(&self) -> String {
-        format!("{}.{}", self.parent.name, self.name)
+        format!("\"{}\".\"{}\"", self.parent.name, self.name)
     }
 }
 
@@ -260,7 +260,7 @@ impl Composite {
     }
 
     pub fn fullname(&self) -> String {
-        format!("{}.{}", self.parent.name, self.name)
+        format!("\"{}\".\"{}\"", self.parent.name, self.name)
     }
 }
 
@@ -288,7 +288,7 @@ impl Column {
     }
 
     pub fn fullname(&self) -> String {
-        format!("{}.{}", self.parent.fullname(), self.name)
+        format!("{}.\"{}\"", self.parent.fullname(), self.name)
     }
 }
 
@@ -319,7 +319,7 @@ impl Extension {
     }
 
     pub fn fullname(&self) -> String {
-        format!("{}.{}", self.parent.name, self.name)
+        format!("\"{}\".\"{}\"", self.parent.name, self.name)
     }
 }
 
@@ -347,7 +347,7 @@ impl Trigger {
     }
 
     pub fn fullname(&self) -> String {
-        format!("{}.{}", self.parent.name, self.name)
+        format!("\"{}\".\"{}\"", self.parent.name, self.name)
     }
 }
 
@@ -373,7 +373,7 @@ impl Constraint {
     }
 
     pub fn fullname(&self) -> String {
-        format!("{}.{}", self.parent_name, self.name)
+        format!("\"{}\".\"{}\"", self.parent_name, self.name)
     }
 }
 
