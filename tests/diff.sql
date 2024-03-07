@@ -36,7 +36,7 @@ alter table "public"."updated_table" alter column "new_not_null" set not null;
 alter table "public"."updated_table" alter column "old_default" drop default;
 alter table "public"."updated_table" alter column "old_not_null" drop not null;
 comment on column "public"."updated_table"."updated_column" is 'updated column';
-alter table "public"."updated_table" alter column "updated_column" type int4;
+alter table "public"."updated_table" alter column "updated_column" type int4 using "updated_column"::int4;
 alter table "public"."updated_table" add constraint "updated_table_new_check_check" CHECK ((char_length(new_check) = 5));
 alter table "public"."updated_table" add constraint "updated_table_new_exclude_excl" EXCLUDE USING gist (new_exclude WITH &&);
 alter table "public"."updated_table" add constraint "updated_table_new_foreign_fkey" FOREIGN KEY (new_foreign) REFERENCES ft(id);

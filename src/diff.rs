@@ -539,10 +539,12 @@ impl Column {
 
         if old.ty() != new.ty() {
             sql.push_str(&format!(
-                "alter table {} alter column \"{}\" type {};\n",
+                "alter table {} alter column \"{}\" type {} using \"{}\"::{};\n",
                 old.parent.fullname(),
                 old.name,
-                new.ty()
+                new.ty(),
+                old.name,
+                new.ty(),
             ));
         }
 
