@@ -1,3 +1,5 @@
+begin;
+
 create schema new_schema;
 comment on schema new_schema is 'new schema';
 drop schema old_schema;
@@ -93,3 +95,5 @@ $function$;
 create or replace trigger "new_trigger" AFTER UPDATE on "public"."updated_table" for each ROW EXECUTE FUNCTION new_function();
 drop trigger "old_trigger" on "public"."updated_table";
 create or replace trigger "updated_trigger" BEFORE INSERT on "public"."updated_table" for each ROW EXECUTE FUNCTION new_function();
+
+commit;

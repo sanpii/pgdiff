@@ -104,7 +104,10 @@ impl Diff {
 
     pub fn sql(&self) -> String {
         let mut s = String::new();
+
+        s.push_str("begin;\n\n");
         self.schema.sql(&mut s);
+        s.push_str("\ncommit;\n");
 
         s
     }

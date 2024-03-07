@@ -1,3 +1,5 @@
+begin;
+
 create schema if not exists old_schema;
 
 create table if not exists old_table();
@@ -76,3 +78,5 @@ $$;
 
 create or replace trigger old_trigger before insert on updated_table for each row execute function old_function();
 create or replace trigger updated_trigger before insert on updated_table for each row execute function old_function();
+
+commit;

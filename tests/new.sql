@@ -1,3 +1,5 @@
+begin;
+
 create schema if not exists new_schema;
 comment on schema new_schema is 'new schema';
 comment on schema public is 'public schema';
@@ -87,3 +89,5 @@ $$;
 
 create or replace trigger new_trigger after update on updated_table for each row execute function new_function();
 create or replace trigger updated_trigger before insert on updated_table for each row execute function new_function();
+
+commit;
