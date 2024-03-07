@@ -22,7 +22,8 @@ drop materialized view "public"."old_materialized_view";
 drop table "public"."old_table";
 drop view "public"."old_view";
 comment on table "public"."updated_table" is null;
-create or replace view "public"."updated_view" as  SELECT pk
+drop view "public"."updated_view";
+create view "public"."updated_view" as  SELECT pk
    FROM new_table;
 alter table "public"."updated_table" add column "len" varchar(10);
 alter table "public"."updated_table" add column "new_column" text;
