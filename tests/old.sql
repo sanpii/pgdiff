@@ -59,6 +59,14 @@ create or replace view old_view as select 1;
 create or replace view updated_view as select 1;
 create materialized view if not exists old_materialized_view as select 1;
 
+create or replace function trigger_function()
+    returns trigger
+    language plpgsql
+as $$
+begin
+    return new;
+end;
+$$;
 create or replace function old_function()
     returns trigger
     language plpgsql
@@ -76,7 +84,7 @@ begin
 end;
 $$;
 
-create or replace trigger old_trigger before insert on updated_table for each row execute function old_function();
-create or replace trigger updated_trigger before insert on updated_table for each row execute function old_function();
+create or replace trigger old_trigger before insert on updated_table for each row execute function trigger_function();
+create or replace trigger updated_trigger before insert on updated_table for each row execute function trigger_function();
 
 commit;
