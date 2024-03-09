@@ -25,7 +25,8 @@ fn diff() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn syntax() -> Result<(), Box<dyn std::error::Error>> {
     let diff = load_diff()?;
-    let diff = diff.trim_start_matches("begin;\n\n")
+    let diff = diff
+        .trim_start_matches("begin;\n\n")
         .trim_end_matches("commit;\n");
 
     let sql = format!("do $syntax_check$ begin return;{diff}end; $syntax_check$;");

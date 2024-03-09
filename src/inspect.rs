@@ -447,7 +447,6 @@ impl Index {
 
 impl PartialEq for Index {
     fn eq(&self, other: &Self) -> bool {
-        self.inner.name == other.inner.name
-            && self.inner.definition == other.inner.definition
+        self.inner.name == other.inner.name && self.inner.definition == other.inner.definition
     }
 }

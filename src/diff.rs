@@ -315,10 +315,7 @@ impl Relation {
         if old.kind == elephantry::inspect::Kind::View {
             sql.push_str(&self.sql_removed(old));
             if let Some(definition) = &new.definition {
-                sql.push_str(&format!(
-                    "create view {} as {definition}\n",
-                    old.fullname(),
-                ));
+                sql.push_str(&format!("create view {} as {definition}\n", old.fullname(),));
             }
         }
 
