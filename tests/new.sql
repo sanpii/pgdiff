@@ -17,6 +17,7 @@ create table if not exists ft (
 
 create table if not exists updated_table(
     new_column text,
+    old_index text,
     len varchar(10),
     updated_column int,
     old_default bool,

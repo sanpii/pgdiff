@@ -167,7 +167,7 @@ impl Relation {
             })
             .collect();
 
-        relation.indexes = elephantry::inspect::indexes(conn, &relation.inner)?
+        relation.indexes = elephantry::inspect::indexes(conn, &relation)?
             .iter()
             .map(|x| {
                 (
@@ -425,7 +425,7 @@ impl PartialEq for Constraint {
     }
 }
 
-#[derive(Clone, Debug, Deref, Eq, PartialEq)]
+#[derive(Clone, Debug, Deref, Eq)]
 pub struct Index {
     #[deref]
     inner: elephantry::inspect::Index,
@@ -442,5 +442,12 @@ impl Index {
 
     pub fn fullname(&self) -> String {
         self.name.clone()
+    }
+}
+
+impl PartialEq for Index {
+    fn eq(&self, other: &Self) -> bool {
+        self.inner.name == other.inner.name
+            && self.inner.definition == other.inner.definition
     }
 }

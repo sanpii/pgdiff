@@ -10,6 +10,7 @@ create table if not exists ft (
 
 create table if not exists updated_table(
     old_column text,
+    old_index text,
     updated_column text,
     old_default bool default true,
     new_default timestamptz,
@@ -27,7 +28,7 @@ create table if not exists updated_table(
 );
 comment on table updated_table is 'need update';
 
-create index if not exists old_index on updated_table(old_column);
+create index if not exists old_index on updated_table(old_index);
 create index if not exists updated_index on updated_table(updated_column);
 
 do $$
