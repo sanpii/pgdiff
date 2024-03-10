@@ -515,7 +515,7 @@ impl Column {
     fn sql_updated(&self, old: &crate::inspect::Column, new: &crate::inspect::Column) -> String {
         let mut sql = match (&old.default, &new.default) {
             (_, Some(default)) => format!(
-                "alter table {} alter column \"{}\" set default '{default}';\n",
+                "alter table {} alter column \"{}\" set default {default};\n",
                 old.parent.fullname(),
                 old.name,
             ),

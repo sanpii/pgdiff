@@ -39,7 +39,7 @@ alter table "public"."updated_table" add column "new_column" text;
 comment on column "public"."updated_table"."new_column" is 'new column';
 alter table "public"."updated_table" add column "new_foreign" int4;
 alter table "public"."updated_table" drop column "old_column";
-alter table "public"."updated_table" alter column "new_default" set default 'now()';
+alter table "public"."updated_table" alter column "new_default" set default now();
 alter table "public"."updated_table" alter column "new_not_null" set not null;
 alter table "public"."updated_table" alter column "old_default" drop default;
 alter table "public"."updated_table" alter column "old_not_null" drop not null;
