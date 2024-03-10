@@ -7,6 +7,7 @@ trait Stack<C: Comparable, CH>: Default {
     fn remove(&mut self, old: &C);
     fn update(&mut self, old: &C, new: &C);
     fn add_child(&mut self, children: CH);
+    fn is_empty(&self) -> bool;
 }
 
 fn iter<S: Stack<C, CH>, C: Comparable, CH, F: FnMut(&C, &C) -> CH>(
@@ -107,7 +108,7 @@ impl Diff {
 
         s.push_str("begin;\n\n");
         self.schema.sql(&mut s);
-        s.push_str("\ncommit;\n");
+        s.push_str("commit;\n");
 
         s
     }
@@ -145,10 +146,20 @@ macro_rules! diff {
             fn add_child(&mut self, children: $child) {
                 self.children.push(children);
             }
+
+            fn is_empty(&self) -> bool {
+                self.added.is_empty()
+                    && self.updated.is_empty()
+                    && self.removed.is_empty()
+            }
         }
 
         impl Sql for $ty {
             fn sql(&self, output: &mut dyn std::fmt::Write) {
+                if !self.is_empty() {
+                    write!(output, "--\n-- {}\n--\n", stringify!($ty)).ok();
+                }
+
                 for new in &self.added {
                     output.write_str(&self.sql_added(new)).ok();
                 }
@@ -163,6 +174,10 @@ macro_rules! diff {
 
                 for child in &self.children {
                     child.sql(output);
+                }
+
+                if !self.is_empty() {
+                    output.write_str("\n").ok();
                 }
             }
         }
@@ -183,6 +198,8 @@ impl Stack<(), ()> for () {
     fn update(&mut self, _: &(), _: &()) {}
 
     fn add_child(&mut self, _: ()) {}
+
+    fn is_empty(&self) -> bool { true }
 }
 
 diff!(Schema, SchemaComponents, crate::inspect::Schema);
