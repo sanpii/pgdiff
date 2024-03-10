@@ -2,9 +2,8 @@ on: [pull_request, push]
 
 env:
   CARGO_TERM_COLOR: always
-  DATABASE_URL: postgres://postgres:root@localhost/new
-  DB_NEW: $DATABASE_URL
-  DB_OLD: postgres://postgres:root@localhost/old
+  OLD_URL: postgres://postgres:root@localhost/old
+  NEW_URL: postgres://postgres:root@localhost/new
 
 jobs:
   lint_fmt:
@@ -48,7 +47,7 @@ jobs:
           sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt jammy-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
           sudo apt-get update
-          sudo apt-get install -y libpq-dev postgresql-15
+          sudo apt-get install -y libpq-dev postgresql-16
           sudo service postgresql start && sleep 3
           sudo -u postgres psql --command "alter user postgres password 'root';"
           sudo -u postgres psql --command "create database old;";
@@ -75,14 +74,14 @@ jobs:
           sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt jammy-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
           sudo apt-get update
-          sudo apt-get install -y libpq-dev postgresql-15
+          sudo apt-get install -y libpq-dev postgresql-16
           sudo service postgresql start && sleep 3
           sudo -u postgres psql --command "alter user postgres password 'root';"
           sudo -u postgres psql --command "create database old;";
           sudo -u postgres psql --command "create database new;";
       - name: Run
         run: |
-          sudo -u postgresql pg_dump --schema-only new > new.dump
-          sudo -u postgresql psql --file tests/diff.sql old
-          sudo -u postgresql pg_dump --schema-only old > old.dump
+          sudo -u postgres pg_dump --schema-only new > new.dump
+          sudo -u postgres psql --file tests/diff.sql old
+          sudo -u postgres pg_dump --schema-only old > old.dump
           diff -u old.dump new.dump

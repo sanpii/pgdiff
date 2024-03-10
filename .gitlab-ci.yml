@@ -18,8 +18,6 @@ lint:fmt:
 lint:clippy:
     stage: lint
     before_script:
-        - echo "deb http://apt.postgresql.org/pub/repos/apt bullseye-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-        - curl https://www.postgresql.org/media/keys/ACCC4CF8.asc > /etc/apt/trusted.gpg.d/ACCC4CF8.asc
         - apt update -yqq
         - apt install -yqq postgresql-15 clang libpq-dev
         - rustup component add clippy
@@ -30,8 +28,6 @@ lint:clippy:
     before_script:
         - MODE=$(echo "$CI_JOB_NAME" | cut -d ':' -f 2)
         - test "$MODE" == "release" && CARGO_FLAGS='--release' || CARGO_FLAGS=''
-        - echo "deb http://apt.postgresql.org/pub/repos/apt bullseye-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-        - curl https://www.postgresql.org/media/keys/ACCC4CF8.asc > /etc/apt/trusted.gpg.d/ACCC4CF8.asc
         - apt update -yqq
         - apt install -yqq sudo postgresql-15 locales clang libpq-dev
         - echo "en_US UTF-8" > /etc/locale.gen
@@ -40,8 +36,8 @@ lint:clippy:
         - sudo -u postgres psql --command "create role root WITH LOGIN ENCRYPTED PASSWORD '1234' SUPERUSER;";
         - sudo -u postgres psql --command "create database old with owner root;";
         - sudo -u postgres psql --command "create database new with owner root;";
-        - export DB_OLD='host=localhost password=1234 database=old'
-        - export DB_NEW='host=localhost password=1234 database=new'
+        - export OLD_URL='postgres://root:1234@localhost/old'
+        - export NEW_URL='postgres://root:1234@localhost/new'
     script:
         - cargo test $CARGO_FLAGS
 
@@ -54,9 +50,9 @@ test:release:
 apply:release: &test
     stage: apply
     script:
-        - sudo -u postgresql pg_dump --schema-only new > new.dump
-        - sudo -u postgresql psql --file tests/diff.sql old
-        - sudo -u postgresql pg_dump --schema-only old > old.dump
+        - sudo -u postgres pg_dump --schema-only new > new.dump
+        - sudo -u postgres psql --file tests/diff.sql old
+        - sudo -u postgres pg_dump --schema-only old > old.dump
         - diff -u old.dump new.dump
 
 cache:
