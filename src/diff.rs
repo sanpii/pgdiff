@@ -148,9 +148,7 @@ macro_rules! diff {
             }
 
             fn is_empty(&self) -> bool {
-                self.added.is_empty()
-                    && self.updated.is_empty()
-                    && self.removed.is_empty()
+                self.added.is_empty() && self.updated.is_empty() && self.removed.is_empty()
             }
         }
 
@@ -199,7 +197,9 @@ impl Stack<(), ()> for () {
 
     fn add_child(&mut self, _: ()) {}
 
-    fn is_empty(&self) -> bool { true }
+    fn is_empty(&self) -> bool {
+        true
+    }
 }
 
 diff!(Schema, SchemaComponents, crate::inspect::Schema);
