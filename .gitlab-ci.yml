@@ -3,6 +3,7 @@ image: "rust:latest"
 stages:
     - lint
     - test
+    - apply
 
 variables:
     CARGO_HOME: $CI_PROJECT_DIR/cargo
@@ -39,8 +40,8 @@ lint:clippy:
         - sudo -u postgres psql --command "create role root WITH LOGIN ENCRYPTED PASSWORD '1234' SUPERUSER;";
         - sudo -u postgres psql --command "create database old with owner root;";
         - sudo -u postgres psql --command "create database new with owner root;";
-        - export DB_OLD='host=localhost password=1234'
-        - export DB_NEW='host=localhost password=1234'
+        - export DB_OLD='host=localhost password=1234 database=old'
+        - export DB_NEW='host=localhost password=1234 database=new'
     script:
         - cargo test $CARGO_FLAGS
 
@@ -50,6 +51,13 @@ test:debug:
 test:release:
     <<: *test
 
+apply:release: &test
+    stage: apply
+    script:
+        - sudo -u postgresql pg_dump --schema-only new > new.dump
+        - sudo -u postgresql psql --file tests/diff.sql old
+        - sudo -u postgresql pg_dump --schema-only old > old.dump
+        - diff -u old.dump new.dump
 
 cache:
     paths:
