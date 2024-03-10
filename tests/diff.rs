@@ -1,5 +1,7 @@
+type Result<T = ()> = std::result::Result<T, Box<dyn std::error::Error>>;
+
 #[test]
-fn diff() -> Result<(), Box<dyn std::error::Error>> {
+fn diff() -> Result {
     let actual = load_diff()?;
     let expected = include_str!("diff.sql");
 
@@ -23,7 +25,7 @@ fn diff() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn syntax() -> Result<(), Box<dyn std::error::Error>> {
+fn syntax() -> Result {
     let diff = load_diff()?;
     let diff = diff
         .trim_start_matches("begin;\n\n")
@@ -44,7 +46,7 @@ struct Config {
     new_url: String,
 }
 
-fn load_diff() -> Result<String, Box<dyn std::error::Error>> {
+fn load_diff() -> Result<String> {
     use envir::Deserialize;
 
     envir::dotenv();
@@ -59,7 +61,7 @@ fn load_diff() -> Result<String, Box<dyn std::error::Error>> {
     Ok(diff)
 }
 
-fn db(url: &str, sql: &str) -> Result<pgdiff::inspect::Database, Box<dyn std::error::Error>> {
+fn db(url: &str, sql: &str) -> Result<pgdiff::inspect::Database> {
     let db = elephantry::Connection::new(&url)?;
 
     db.execute(&sql)?;
