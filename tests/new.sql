@@ -16,9 +16,7 @@ create table if not exists ft (
 );
 
 create table if not exists updated_table(
-    new_column text,
     old_index text,
-    len varchar(10),
     updated_column int,
     old_default bool,
     new_default timestamptz default now(),
@@ -30,9 +28,11 @@ create table if not exists updated_table(
     old_unique int,
     new_unique int unique,
     old_foreign int,
-    new_foreign int references ft(id),
     old_exclude circle,
     new_exclude circle,
+    len varchar(10),
+    new_column text,
+    new_foreign int references ft(id),
     exclude using gist (new_exclude with &&)
 );
 
