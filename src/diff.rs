@@ -150,15 +150,15 @@ macro_rules! diff {
         impl Sql for $ty {
             fn sql(&self, output: &mut dyn std::fmt::Write) {
                 for new in &self.added {
-                    write!(output, "{}", self.sql_added(new)).ok();
+                    output.write_str(&self.sql_added(new)).ok();
                 }
 
                 for old in &self.removed {
-                    write!(output, "{}", self.sql_removed(old)).ok();
+                    output.write_str(&self.sql_removed(old)).ok();
                 }
 
                 for (old, new) in &self.updated {
-                    write!(output, "{}", self.sql_updated(old, new)).ok();
+                    output.write_str(&self.sql_updated(old, new)).ok();
                 }
 
                 for child in &self.children {
