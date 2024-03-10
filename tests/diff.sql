@@ -74,7 +74,7 @@ CREATE INDEX updated_index ON public.updated_table USING btree (updated_column) 
 --
 create type "public"."new_enum" as enum('sad', 'ok', 'happy');
 drop type "public"."old_enum";
-select * from pg_enum e join pg_type t on e.enumtypid = t.oid and t.typname = 'updated_enum' join pg_namespace n on t.typnamespace = n.oid and n.nspname = 'public' where enumlabel = 'happy';
+delete from pg_enum e using pg_type t, pg_namespace n where e.enumtypid = t.oid and t.typname = 'updated_enum' and t.typnamespace = n.oid and n.nspname = 'public' and enumlabel = 'happy';
 alter type "public"."updated_enum" add value 'neutral' after 'sad';
 
 --
