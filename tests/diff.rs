@@ -49,7 +49,7 @@ struct Config {
 fn load_diff() -> Result<String> {
     use envir::Deserialize;
 
-    envir::dotenv();
+    envir::init();
     let config = Config::from_env()?;
     let old = db(&config.old_url, include_str!("old.sql"))?;
     let new = db(&config.new_url, include_str!("new.sql"))?;
