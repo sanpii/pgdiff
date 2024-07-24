@@ -14,7 +14,7 @@ create materialized view "public"."new_materialized_view" as  SELECT 1 AS "?colu
 create view "public"."new_recursive_view" as  WITH RECURSIVE new_recursive_view(pk) AS (
          SELECT 1 AS "?column?"
         )
- SELECT pk
+ SELECT new_recursive_view.pk
    FROM new_recursive_view;
 create table "public"."new_table"(
     pk int4 primary key
@@ -22,14 +22,14 @@ create table "public"."new_table"(
 comment on table "public"."new_table" is 'new table';
 create unlogged table "public"."new_unlogged_table"(
 );
-create view "public"."new_view" as  SELECT pk
+create view "public"."new_view" as  SELECT new_table.pk
    FROM new_table;
 drop materialized view "public"."old_materialized_view";
 drop table "public"."old_table";
 drop view "public"."old_view";
 comment on table "public"."updated_table" is null;
 drop view "public"."updated_view";
-create view "public"."updated_view" as  SELECT pk
+create view "public"."updated_view" as  SELECT new_table.pk
    FROM new_table;
 --
 -- Column
