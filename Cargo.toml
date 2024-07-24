@@ -23,6 +23,6 @@ console = "0.15"
 similar = "2.2"
 
 [dev-dependencies.envir]
-version = "0.3"
+version = "0.4"
 default-features = false
 features = ["dotenv", "serde"]
