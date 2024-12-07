@@ -21,7 +21,7 @@ lint:clippy:
         - apt update -yqq
         - apt install -yqq postgresql-15 clang libpq-dev
         - rustup component add clippy
-    script: cargo clippy -- --deny warnings
+    script: cargo clippy --all-targets -- --deny warnings
 
 .test: &test
     stage: test
