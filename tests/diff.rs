@@ -62,11 +62,11 @@ fn load_diff() -> Result<String> {
 }
 
 fn db(url: &str, sql: &str) -> Result<pgdiff::inspect::Database> {
-    let db = elephantry::Connection::new(&url)?;
+    let db = elephantry::Connection::new(url)?;
 
-    db.execute(&sql)?;
+    db.execute(sql)?;
 
-    let diff = pgdiff::inspect::Database::new(&url)?;
+    let diff = pgdiff::inspect::Database::new(url)?;
 
     Ok(diff)
 }
