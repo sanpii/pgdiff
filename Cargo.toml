@@ -1,7 +1,7 @@
 [package]
 name = "pgdiff"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "Postgresql schema diff tool"
 repository = "https://github.com/sanpii/pgdiff"
 license = "MIT"
