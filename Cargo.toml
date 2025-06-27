@@ -19,7 +19,7 @@ version = "4.0"
 features = ["inspect"]
 
 [dev-dependencies]
-console = "0.15"
+console = "0.16"
 similar = "2.2"
 
 [dev-dependencies.envir]
