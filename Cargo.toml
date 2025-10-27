@@ -15,7 +15,7 @@ version = "4.0"
 features = ["derive"]
 
 [dependencies.elephantry]
-version = "4.0"
+version = "5.0"
 features = ["inspect"]
 
 [dev-dependencies]
