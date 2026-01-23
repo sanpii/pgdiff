@@ -87,7 +87,6 @@ alter domain "public"."updated_domain" set default ''::text;
 --
 -- Constraint
 --
-alter domain "public"."updated_domain" add constraint "updated_domain_not_null" NOT NULL;
 alter domain "public"."updated_domain" drop constraint "updated_domain_check";
 
 
