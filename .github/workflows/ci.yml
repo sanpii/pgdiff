@@ -82,7 +82,8 @@ jobs:
           sudo -u postgres psql --command "create database new;";
       - name: Run
         run: |
-          sudo -u postgres pg_dump --schema-only new > new.dump
+          RESTRICT_KEY=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 63)
+          sudo -u postgres pg_dump --schema-only --restrict-key=$RESTRICT_KEY new > new.dump
           sudo -u postgres psql --file tests/diff.sql old
-          sudo -u postgres pg_dump --schema-only old > old.dump
+          sudo -u postgres pg_dump --schema-only --restrict-key=$RESTRICT_KEY old > old.dump
           diff -u old.dump new.dump
