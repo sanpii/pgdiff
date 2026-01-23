@@ -7,6 +7,7 @@ stages:
 
 variables:
     CARGO_HOME: $CI_PROJECT_DIR/cargo
+    PG_VERSION: 18
 
 lint:fmt:
     stage: lint
@@ -18,8 +19,10 @@ lint:fmt:
 lint:clippy:
     stage: lint
     before_script:
+        - echo "deb http://apt.postgresql.org/pub/repos/apt trixie-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+        - curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
         - apt update -yqq
-        - apt install -yqq postgresql-15 clang libpq-dev
+        - apt install -yqq postgresql-$PG_VERSION clang libpq-dev
         - rustup component add clippy
     script: cargo clippy --all-targets -- --deny warnings
 
@@ -28,11 +31,13 @@ lint:clippy:
     before_script:
         - MODE=$(echo "$CI_JOB_NAME" | cut -d ':' -f 2)
         - test "$MODE" == "release" && CARGO_FLAGS='--release' || CARGO_FLAGS=''
+        - echo "deb http://apt.postgresql.org/pub/repos/apt trixie-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+        - curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
         - apt update -yqq
-        - apt install -yqq sudo postgresql-15 locales clang libpq-dev
+        - apt install -yqq sudo postgresql-$PG_VERSION locales clang libpq-dev
         - echo "en_US UTF-8" > /etc/locale.gen
         - locale-gen en_US.UTF-8
-        - sudo -u postgres pg_ctlcluster 15 main start
+        - sudo -u postgres pg_ctlcluster $PG_VERSION main start
         - sudo -u postgres psql --command "create role root WITH LOGIN ENCRYPTED PASSWORD '1234' SUPERUSER;";
         - sudo -u postgres psql --command "create database old with owner root;";
         - sudo -u postgres psql --command "create database new with owner root;";

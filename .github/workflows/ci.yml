@@ -4,6 +4,7 @@ env:
   CARGO_TERM_COLOR: always
   OLD_URL: postgres://postgres:root@localhost/old
   NEW_URL: postgres://postgres:root@localhost/new
+  PG_VERSION: 18
 
 jobs:
   lint_fmt:
@@ -44,10 +45,10 @@ jobs:
       - name: Install postgreSQL (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt jammy-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
           sudo apt-get update
-          sudo apt-get install -y libpq-dev postgresql-16
+          sudo apt-get install -y libpq-dev postgresql-$PG_VERSION
           sudo service postgresql start && sleep 3
           sudo -u postgres psql --command "alter user postgres password 'root';"
           sudo -u postgres psql --command "create database old;";
@@ -71,10 +72,10 @@ jobs:
       - name: Install postgreSQL (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt jammy-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
           sudo apt-get update
-          sudo apt-get install -y libpq-dev postgresql-16
+          sudo apt-get install -y libpq-dev postgresql-$PG_VERSION
           sudo service postgresql start && sleep 3
           sudo -u postgres psql --command "alter user postgres password 'root';"
           sudo -u postgres psql --command "create database old;";
