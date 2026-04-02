@@ -20,7 +20,7 @@ features = ["inspect"]
 
 [dev-dependencies]
 console = "0.16"
-similar = "2.2"
+similar = "3.0"
 
 [dev-dependencies.envir]
 version = "1.3"
