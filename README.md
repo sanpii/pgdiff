@@ -10,3 +10,8 @@ A tool to generate diff beetween two databases.
 ```
 cargo run -- --old postgresql://localhost/old --new postgresql://localhost/new
 ```
+
+## Limitations
+
+- no data diff
+- drop a function used in a trigger
