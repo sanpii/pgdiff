@@ -52,10 +52,12 @@ alter table "public"."updated_table" alter column "updated_column" type int4 usi
 alter table "public"."updated_table" add constraint "updated_table_new_check_check" CHECK ((char_length(new_check) = 5));
 alter table "public"."updated_table" add constraint "updated_table_new_exclude_excl" EXCLUDE USING gist (new_exclude WITH &&);
 alter table "public"."updated_table" add constraint "updated_table_new_foreign_fkey" FOREIGN KEY (new_foreign) REFERENCES ft(id);
+alter table "public"."updated_table" add constraint "updated_table_new_not_null_not_null" NOT NULL new_not_null;
 alter table "public"."updated_table" add constraint "updated_table_new_unique_key" UNIQUE (new_unique);
 alter table "public"."updated_table" drop constraint "updated_table_old_check_check";
 alter table "public"."updated_table" drop constraint "updated_table_old_exclude_excl";
 alter table "public"."updated_table" drop constraint "updated_table_old_foreign_fkey";
+alter table "public"."updated_table" drop constraint "updated_table_old_not_null_not_null";
 alter table "public"."updated_table" drop constraint "updated_table_old_unique_key";
 alter table "public"."updated_table" drop constraint "updated_table_updated_check_check";
 alter table "public"."updated_table" add constraint "updated_table_updated_check_check" CHECK ((char_length(updated_check) = 2));
@@ -87,6 +89,7 @@ alter domain "public"."updated_domain" set default ''::text;
 --
 -- Constraint
 --
+alter domain "public"."updated_domain" add constraint "updated_domain_not_null" NOT NULL;
 alter domain "public"."updated_domain" drop constraint "updated_domain_check";
 
 
